@@ -50,7 +50,7 @@
 \def\bOmega{\boldsymbol\Omega}
 \def\bmu{\boldsymbol\mu}
 \def\bnu{\boldsymbol\nu}
-
+\def\bPi{\boldsymbol\Pi}
 \def\bX{\boldsymbol X}
 \def\bx{\boldsymbol x}
 
@@ -62,12 +62,10 @@
 
 \begin{document}
 
-\section{Pistes de réfléxion Thèse - Janvier 2015}
+\section{Pistes de réflexion Thèse - Janvier 2015}
 \subsection{Introduction}
 
-Soient $X_1$,...,$X_n$ un échantillon de n variables aléatoires i.i.d de loi $P^*$, $X_i\in\RR^p$
-\\
-On suppose que le nombre de clusters (K) est connu, on cherche à approcher $P^*$ par un mélange de Gaussiennes.
+Soient $X_1$,...,$X_n$, $X_i\in\RR^p$  un échantillon de n variables aléatoires i.i.d de loi $P^*$. On suppose que $P^*$ est un mélange de K composantes Gaussiennes\\ $P_j,\quad j\in [K]$ et que K est connu:
 
 $$
 P^* = \sum_{j=1}^K \pi_jP_j \qquad avec \qquad \forall i, \quad \pi_i>0 \qquad et \qquad \sum_{j=1}^K\pi_j=1
@@ -75,14 +73,14 @@ $$
 Où $P_j$ a pour densité la loi normale  $\mathcal N_p(\bmu_j,\bSigma_j)$.
 \\
 
-Une approche classique dans le cadre de mélange de gaussien est d'utiliser l'algorithme EM pour estimer les parametres $\Pi,\bmu,\bSigma$. Sans hypothese supplémentaire, la complexite de cette approche rend le calcul impossible quand p devient grand. Une hypothese est de considerer $\bSigma$ diagonale mais ceci revient a considerer que les features sont indépendantes ce qui est un inconvenient.
+Une approche classique dans le cadre de mélange de gaussien est d'utiliser l'algorithme EM pour estimer les paramètres $\bPi=(\pi_1,\dots,\pi_n),\bmu,\bSigma$. Sans hypothèse supplémentaire, la complexité de cette approche rend le calcul impossible quand la dimension p devient grande. Une approche est de considérer $\bSigma$ diagonale mais ceci revient à considérer que les features sont indépendantes ce qui est un inconvénient.
 
 \subsection{Approche par analyse structurelle de $\Sigma$}
 
 Soient $Y_1$,...,$Y_n$ un échantillon de n variables aléatoires i.i.d de loi $\mathcal N_p(\bmu^*,\bSigma^*)$, $Y_i\in\RR^p$. Supposons p grand. Nous cherchons a estimer $\mu^*$ et $\Sigma^*$.
 \\
-Nous pouvons estimer la moyenne empirique $\hat{\mu}=\bar{Y_n}$ et donc supposer que $\mu=0$. Pour $\Sigma^*$ ceci est plus délicat et nous chercherons des hypotheses structurelles sur $\bSigma^{-1}=\bOmega$ la matrice de précison. Notamment en considérant que $\bOmega$ est creuse.
-Interpretation: si $\omega_{j,j'}=0$ alors $Y^j \ci Y^{j'}|\{Y^l\backslash (Y^j,Y^{j'})\}$.\\
+Nous pouvons estimer la moyenne empirique $\hat{\mu}=\bar{Y_n}$ et donc supposer que $\mu=0$. Pour $\Sigma^*$ ceci est plus délicat et nous chercherons des hypothèses structurelles sur $\bSigma^{-1}=\bOmega$ la matrice de précision. Notamment en considérant que $\bOmega$ est creuse.
+Interprétation: si $\omega_{j,j'}=0$ alors $Y^j \ci Y^{j'}|\{Y^l\backslash (Y^j,Y^{j'})\}$.\\
 Nous pouvons considérer le graphe $G=(V,E)$ avec card(V)=p alors,
 \begin{figure}[!h]
 \centering
@@ -102,7 +100,7 @@ Nous pouvons considérer le graphe $G=(V,E)$ avec card(V)=p alors,
 et $e_{j,j'}\in E \iff \omega_{j,j'} \neq 0$
 
 \subsubsection{Graphical Lasso}
-On veut le maximum de vraissemblance pénalisé par la norme $L_1$.
+On veut l'estimateur du maximum de vraisemblance pénalisé par la norme $L_1$.
 
 $$
 \hat\bOmega \in \text{arg}\min_{\bOmega\geq0\\}
@@ -111,19 +109,19 @@ $$
 \\
 avec $S_n=\frac1n\sum_{i=1}^nY_iY_i^T$ la matrice de covariance et
 $\|\bOmega\|_1= \sum_{j,j':j\not=j'}|\omega_{j,j'}|$
-Ceci est un probleme d'optimisation convexe, (problème d'optimisation SDP)
+Ceci est un problème d'optimisation convexe, (problème d'optimisation SDP)
 
 
 \subsubsection{Column-wise Lasso}
 
-(Théoreme)
+(Théorème)
 Si $Y\sim\mathcal N_p(0,(\Omega^*)^{-1})$, alors
 $$Y_j=\sum_{j'\in[p]\backslash j}\big(-\frac{\omega_{jj'}^*}{\omega_{jj}^*}\big)Y^{j'}+\frac1{\sqrt{\omega_{jj}^*}}\xi^j
 $$
 
 où $\xi^j\sim\mathcal N_p(0,1)\ci \{Y^{j'}:j'\in[p]\backslash j\}$
 
-\subsubsection{Methode d'estimation}
+\subsubsection{Méthode d'estimation}
 $\forall j \in \{1,..,p\}$ on estime le vecteur $\frac1{\omega_{jj}}\begin{bmatrix}
 \omega_{j1} \\
 \ddots\\
