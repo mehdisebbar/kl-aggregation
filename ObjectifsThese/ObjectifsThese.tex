@@ -65,7 +65,7 @@
 \section{Pistes de réflexion Thèse - Janvier 2015}
 \subsection{Introduction}
 
-Soient $X_1$,...,$X_n$, $X_i\in\RR^p$  un échantillon de n variables aléatoires i.i.d de loi $P^*$. On suppose que $P^*$ est un mélange de K composantes Gaussiennes\\ $P_j,\quad j\in [K]$ et que K est connu:
+Soient $X_1$,...,$X_n$, $X_i\in\RR^p$  un échantillon de n variables aléatoires i.i.d de loi $P^*$. On suppose que $P^*$ est un mélange de K composantes Gaussiennes\\ $P_j$, $1\le j\le K$ et que K est connu:
 
 $$
 P^* = \sum_{j=1}^K \pi_jP_j \qquad avec \qquad \forall i, \quad \pi_i>0 \qquad et \qquad \sum_{j=1}^K\pi_j=1
@@ -73,14 +73,14 @@ $$
 Où $P_j$ a pour densité la loi normale  $\mathcal N_p(\bmu_j,\bSigma_j)$.
 \\
 
-Une approche classique dans le cadre de mélange de gaussien est d'utiliser l'algorithme EM pour estimer les paramètres $\bPi=(\pi_1,\dots,\pi_n),\bmu,\bSigma$. Sans hypothèse supplémentaire, la complexité de cette approche rend le calcul impossible quand la dimension p devient grande. Une approche est de considérer $\bSigma$ diagonale mais ceci revient à considérer que les features sont indépendantes ce qui est un inconvénient.
+Une approche classique dans le cadre de mélange de gaussien est d'utiliser l'algorithme EM pour estimer les paramètres $\bPi=(\pi_1,\dots,\pi_n),\bmu,\bSigma$. Sans hypothèse supplémentaire, la complexité de cette approche rend le calcul impossible quand la dimension \textbf{p} devient grande (ordre $p^2$). Une approche est de considérer $\bSigma$ diagonale mais ceci revient à considérer que les features sont indépendantes ce qui est un inconvénient.
 
 \subsection{Approche par analyse structurelle de $\Sigma$}
 
-Soient $Y_1$,...,$Y_n$ un échantillon de n variables aléatoires i.i.d de loi $\mathcal N_p(\bmu^*,\bSigma^*)$, $Y_i\in\RR^p$. Supposons p grand. Nous cherchons a estimer $\mu^*$ et $\Sigma^*$.
+Soient $Y_1$,...,$Y_n$ un échantillon de n variables aléatoires i.i.d de loi $\mathcal N_p(\bmu^*,\bSigma^*)$, $Y_i\in\RR^p$. Supposons p grand. Nous cherchons à estimer $\bmu^*$ et $\bSigma^*$.
 \\
-Nous pouvons estimer la moyenne empirique $\hat{\mu}=\bar{Y_n}$ et donc supposer que $\mu=0$. Pour $\Sigma^*$ ceci est plus délicat et nous chercherons des hypothèses structurelles sur $\bSigma^{-1}=\bOmega$ la matrice de précision. Notamment en considérant que $\bOmega$ est creuse.
-Interprétation: si $\omega_{j,j'}=0$ alors $Y^j \ci Y^{j'}|\{Y^l\backslash (Y^j,Y^{j'})\}$.\\
+Nous pouvons estimer la moyenne empirique $\hat{\mu}=\bar{Y_n}$ et donc supposer que $\mu=0$. Pour $\bSigma^*$ ceci est plus délicat et nous chercherons des hypothèses structurelles sur $\bSigma^{*-1}=\bOmega$ la matrice de précision. Notamment en considérant que $\bOmega$ est creuse.
+Interprétation: si $\omega_{j,j'}=0$ alors $Y_j \ci Y_{j'}|\{Y_l\backslash \{Y_j,Y_{j'}\}\}$.\\
 Nous pouvons considérer le graphe $G=(V,E)$ avec card(V)=p alors,
 \begin{figure}[!h]
 \centering
@@ -100,15 +100,15 @@ Nous pouvons considérer le graphe $G=(V,E)$ avec card(V)=p alors,
 et $e_{j,j'}\in E \iff \omega_{j,j'} \neq 0$
 
 \subsubsection{Graphical Lasso}
-On veut l'estimateur du maximum de vraisemblance pénalisé par la norme $L_1$.
+On cherche l'estimateur du maximum de vraisemblance pénalisé par la norme $L_1$.
 
 $$
 \hat\bOmega \in \text{arg}\min_{\bOmega\geq0\\}
 \Big\{\log(\det\Omega)+\frac12 tr (\Omega S_n)+\lambda\parallel\Omega\parallel_1 \big\}
 $$
 \\
-avec $S_n=\frac1n\sum_{i=1}^nY_iY_i^T$ la matrice de covariance et
-$\|\bOmega\|_1= \sum_{j,j':j\not=j'}|\omega_{j,j'}|$
+avec $S_n=\frac1n\sum_{i=1}^nY_iY_i^T$ la matrice de covariance empirique et
+$\|\bOmega\|_1= \sum_{\substack{j,j'\\j\not=j'}}|\omega_{j,j'}|$.
 Ceci est un problème d'optimisation convexe, (problème d'optimisation SDP)
 
 
@@ -121,15 +121,17 @@ $$
 
 où $\xi^j\sim\mathcal N_p(0,1)\ci \{Y^{j'}:j'\in[p]\backslash j\}$
 
-\subsubsection{Méthode d'estimation}
+\paragraph{Méthode d'estimation:}
+
+
 $\forall j \in \{1,..,p\}$ on estime le vecteur $\frac1{\omega_{jj}}\begin{bmatrix}
 \omega_{j1} \\
 \ddots\\
-\omega_{jj} \end{bmatrix}$
+\omega_{jp-1} \end{bmatrix}$
  On estime $\beta$ par la méthode du Lasso:
 
  $$
-\hat\beta \in \text{arg}\min_{\hat\beta\in\RR^{p-1}}
+\hat\beta \in \text{arg}\min_{\beta\in\RR^{p-1}}
 \left\{\parallel Y^j-Y^{-j}\beta_{-j}\parallel_2^2+\lambda\parallel\beta_{-j}\parallel_1 \right\}
 $$
 \\
@@ -137,10 +139,10 @@ ou $Y^{-j}$ matrice des $Y_{j'}\backslash Y_j$.
 \\
 On pose
 $$
-\hat\omega_{jj}=\left(\frac{\parallel Y^j-Y{-j}\beta_{-j}\parallel_2^2}{n}\right)^{-1} \qquad \text{et} \qquad \hat\omega_{jj'}=
+\hat\omega_{jj}=\left(\frac{\parallel Y^j-Y^{-j}\beta_{-j}\parallel_2^2}{n}\right)^{-1} \qquad \text{et} \qquad \hat\omega_{jj'}=
 $$
 
-On a un lasso en dimension p, la theorie recommande:
+On a un lasso en dimension p, la théorie recommande:
 $$
 \lambda=\sqrt{ \frac{2\log(p)}{n}}\frac{1}{\sqrt{\omega_{jj}^*}}
 $$
@@ -150,15 +152,15 @@ $$
 \hat\beta \in \text{arg}\min_{\hat\beta\in\RR^{p-1}}
 \left\{\parallel Y^j-Y^{-j}\beta_{-j}\parallel_2+\lambda\parallel\beta_{-j}\parallel_1 \right\}
 $$
-la theorie recommande:
+la théorie recommande:
 $$
 \lambda=\sqrt{ \frac{2\log(p)}{n}}
 $$
-(Theoreme)\qquad$\forall\lambda>0, \exists\lambda_1>0\quad|\quad\hat\beta^{\sqrt{Lasso}}(\lambda)=\hat\beta^{Lasso}(\lambda_1)$
+(Théorème)\qquad$\forall\lambda>0, \exists\lambda_1>0\quad|\quad\hat\beta^{\sqrt{Lasso}}(\lambda)=\hat\beta^{Lasso}(\lambda_1)$
 
 \subsection{Objectifs}
 
-Injecter cette méthode du column-wise lasso dans EM sous l'hypothese $\Omega_j=\Sigma_j^{-1}$ est creuse. Nous pourrons commencer par un cas simple, $\Omega_j=\Omega,\forall j$
+Injecter cette méthode du column-wise lasso dans EM sous l’hypothèse $\Omega_j=\Sigma_j^{-1}$ est creuse. Nous pourrons commencer par un cas simple, $\Omega_j=\Omega,\forall j$
 
 \subsection{Notation pratique}
 
