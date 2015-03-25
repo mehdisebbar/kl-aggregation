@@ -58,8 +58,12 @@
 \def\bbeta{\boldsymbol \beta}
 \def\bY{\boldsymbol Y}
 \def\bxi{\boldsymbol \xi}
-
+\def\bpi{\boldsymbol \pi}
 \def\ci{\perp\!\!\!\perp}
+\def\bZ{\boldsymbol Z}
+
+
+\newcommand{\argmax}{\arg\!\max}
 
 \parskip=3pt
 \renewcommand{\baselinestretch}{1.08}
@@ -74,33 +78,38 @@ PHd Student: M. Sebbar}
 \tableofcontents
 \newpage
 \section{Introduction}
-The broad goal of this thesis is to tackle a clustering problem in the scope of mixtures model framework. More precisely, we will study the clustering of points drawn from high-dimensional Gaussian mixtures distributions.\\Thus, in the first part of this section we study the Gaussian mixture model and the second part we describe the well know algorithm Expectation-Maximization (EM) and the limitations in high-dimensional setting.
+The broad goal of this thesis is to tackle a clustering problem in the scope of mixtures model framework. More precisely, we will study the clustering of points drawn from high-dimensional Gaussian mixtures distributions.\\Thus, in the first part of this section we present the Gaussian mixture model and the second part we describe the well know  Expectation-Maximization algorithm (EM). We will also present the limitations of this algorithm in high-dimensional setting.
 \subsection{The Gaussian mixture model}
 
-The Gaussian mixture model is an important framework where the components are Gaussian distributions with parameters $(\mu_i,\Sigma_i)$. The distribution is given by:
+The Gaussian mixture model is an important framework for clustering problems. The components are Gaussian distributions with parameters $(\mu_i,\Sigma_i)$:
 \begin{equation}
-p(x|\theta)=\sum_{i=1}^K\pi_i\frac{1}{(2\pi)^{d/2}|\Sigma_i|^{1/2}} e^{-\frac{1}{2}(x-\mu_i)^T\Sigma_i^{-1}(x-\mu_i)}=\sum_{i=1}^K\pi_i\mathcal N(x|\mu_i,\Sigma_i)
+\varphi_{(\mu_i,\Sigma_i)}(x)=\frac{1}{(2\pi)^{p/2}|\Sigma_i|^{1/2}} \exp(-\frac{1}{2}(x-\mu_i)^T\Sigma_i^{-1}(x-\mu_i))
 \end{equation}
-with $\theta=\{\mu_1,\dots,\mu_K,\Sigma_1,\dots,\Sigma_K\}$ and $\forall i, \pi_i>0$ and $\sum_{i=1}^K\pi_i=1$
+
+The density is given by:
+\begin{equation}
+p_{\theta}(x)=\sum_{k=1}^K\pi_k\varphi_{(\mu_k,\Sigma_k)}(x)
+\end{equation}
+with $\theta=\{(\mu_k,\Sigma_k,\pi_k): 1\leq k\leq K; \; \Sigma_k \geq 0;\; \pi_k>0  \;\forall k\; and \;\sum_{k=1}^K\pi_k=1 \}$
 \\
 
-We will study this mixture from a latent variable perspective. Let Z be a multionomial random variable with component $Z^i$, we have:
+This model can be interpreted from a latent variable perspective. Let $Z$ be a multionomial random variable of parameters $\mu(1,\bpi)$, we have:
 \begin{equation}
-p(x|\theta)=\sum_{i=1}^K p(Z^i=1)p(x|Z^i=1,\theta)
+p_{\theta}(x)=\sum_{k=1}^K P_{\theta}(Z^k=1)p_{\theta}(x|Z^k=1)
 \end{equation}
-Therefore $\pi_i=p(Z^i=1)$ and reflects the probability that x is drawn from the $i^{th}$ mixture component.\\
+Therefore $\pi_k=p_{\theta}(Z^k=1)$ and reflects the probability that $x$ is drawn from the $k^{th}$ mixture component.\\
 
-In the clustering problem, we would like to calculate the probability of the latent variable Z conditioned on X in order to assign X to a cluster.\\
-We denote $\tau^k=p(Z^k=1|x,\theta)$, from Bayes's rule we have:
+In the clustering problem, the goal is to assign $X$ to a cluster and therefore estimate the probability of the latent variable $Z$ conditioned on $X$ which we denote $\tau^k(x,\theta)=p_{\theta}(Z^k=1|x)$. From Bayes's rule we have:
 
 \begin{equation}
 \label{tau_bayes}
-\tau^k=\frac{p(x|Z^k=1,\theta)p(Z^k=1)}{p(x|\theta)}=\frac{\pi_k \mathcal N(x|\mu_k,\Sigma_k)}{\sum_{i=1}^K\pi_i\mathcal N(x|\mu_i,\Sigma_i)}
+\tau^k(x,\theta)=\frac{p_{\theta}(x|Z^k=1)P_{\theta}(Z^k=1)}{p_{\theta}(x)}
+=\frac{\pi_k\varphi_{(\mu_k,\Sigma_k)}(x)}{\sum_{k'=1}^K\pi_{k'}\varphi_{(\mu_{k'},\Sigma_{k'})}(x)}
 \end{equation}
 
-where $\pi_i=P(Z^i=1)$ the prior probability and $\tau^i$ the posterior.\\
+The of estimation  $\tau^k(x,\theta)$ rely on computing the parameters $\theta$. An approach to this problem is to estimate the parameter that maximize the likelihood.\\
 
-We would like to estimate $\theta$ from a set of iid observations $X_1,\dots,X_N$ with $X_i\in \RR^d$. The related graphical model is:
+Let $X_1,\dots,X_N$ with $X_i\in \RR^p$ a set of iid observations drawn from $p_{\theta}$. The related graphical model is:
 
 %%GRAPH of pgm
 \begin{figure}[h]
@@ -110,19 +119,19 @@ We would like to estimate $\theta$ from a set of iid observations $X_1,\dots,X_N
 
 \tikzstyle{connect}=[-latex, thick]
 \tikzstyle{box}=[rectangle, draw=black!100]
-  \node[main, fill = black!50] (x) [label=below:{$X_n$}] { };
-  \node[main] (z) [above=of x,label=above:{$Z_n$}] {};
+  \node[main, fill = black!50] (x) [label=below:{$X_i$}] { };
+  \node[main] (z) [above=of x,label=above:{$Z_i$}] {};
 
   \path (z) edge [connect] (x);
 
   \node[rectangle, inner sep=7mm,draw=black!100, fit= (z) (x)] {};
 \node[rectangle, below=of x, inner sep=-10mm, fit= (z) (x),label=below right:N, xshift=7mm,yshift=-9mm] {};
 
-\node[main] (a) [right=of x] {$\mu$};
+\node[main,draw=none] (a) [right=of x] {$\{\mu_k\}$};
 \path (a) edge [connect] (x);
-\node[main] (b) [left=of x] {$\Sigma$};
+\node[main,draw=none] (b) [left=of x] {$\{\Sigma_k\}$};
 \path (b) edge [connect] (x);
-\node[main] (c) [right=of z] {$\pi$};
+\node[main,draw=none] (c) [right=of z] {$\{\pi_k\}$};
 \path (c) edge [connect] (z);
 \end{tikzpicture}
 \end{figure}
@@ -130,40 +139,43 @@ We would like to estimate $\theta$ from a set of iid observations $X_1,\dots,X_N
 The log-likelihood is:
 
 \begin{equation}
-l(\theta|D)=\sum_{n=1}^{N}\log{p(x_n|\theta)}=\sum_{n=1}^{N}\log{\sum_{i=1}^K\pi_i\mathcal N(x_n|\mu_i,\Sigma_i)}
+l(\theta|x_1,\dots,x_N)=\sum_{i=1}^{N}\log{p_{\theta}(x_i)}=\sum_{i=1}^{N}\log\Big({\sum_{k=1}^K\pi_k\varphi_{(\mu_{k},\Sigma_{k})}(x_i)}\Big)
 \end{equation}
 
-Where D is the set of data points. Here we have the log of a sum and the maximization of the log-likelihood is a non-linear problem (contrary to exponential family distributions where the log acts on a simple probability distribution and therefore yields simple expressions).\\
-An approach for the estimation of the maximum of log-likelihood is the Expectation-Maximization Algorithm.
+In this equation, we have the logarithm of a sum and the maximization of the log-likelihood is a non-linear problem. (This is not a exponential family distribution where the log acts on a simple probability distribution and therefore yields simple expressions).\\
+A well known approach for computing the maximum of log-likelihood is the Expectation-Maximization Algorithm \cite{dempster77}.
 
 %%%%%%%%%%%%%%%%%%%
 
 \subsection{The EM Algorithm}
 
-We will infer the values of $\{z_n\}$ conditioned to the data $\{x_n\}$. A natural approach to estimate the parameters $\theta$ is to estimate the mean of each class by deriving the log-likelihood with respect to $\mu_k$ and setting to 0 we have:
+We will infer the values of $\{z_n\}$ conditioned to the data $\{x_n\}$. A natural approach to infer the parameters $\theta$ is to estimate the mean of each class by computing the partial derivative of the log-likelihood with respect to $\mu_k$ and setting to 0. We have:
 
 
 \begin{equation}
-\sum_{n=1}^N\frac{\pi_k \mathcal N(x_n|\mu_k,\Sigma_k)}{\sum_{i=1}^K\pi_i\mathcal N(x_n|\mu_i,\Sigma_i)} \Sigma_k(x_n-\mu_k)=\sum_{n=1}^N \tau_n^k \Sigma_k(x_n-\mu_k)=0
+\sum_{i=1}^N\frac{\pi_k\varphi_{(\mu_k,\Sigma_k)}(x_i)}{\sum_{k'=1}^K\pi_{k'}\varphi_{(\mu_{k'},\Sigma_{k'})}(x_i)} \Sigma_k^{-1}(x_i-\mu_k)=\sum_{i=1}^N \tau_i^k \Sigma_k^{-1}(x_i-\mu_k)=0
 \end{equation}
 Assuming that $\Sigma_k$ is non singular, we have:
 
 \begin{equation}
+\label{muk}
 \mu_k=\frac{\sum_{n=1}^N\tau_n^k x_n}{\sum_{n=1}^N\tau_n^k}
 \end{equation}
 
-Doing a similar calculus for $\Sigma_k$, we have:
+Doing a similar computation for $\Sigma_k$, we have:
 
 \begin{equation}
+\label{sigmak}
 \Sigma_k=\frac{\sum_{n=1}^N \tau_n^k (x_n-\mu_k)(x_n-\mu_k)^T}{\sum_{n=1}^N\tau_n^k}
 \end{equation}
 
 Finally, maximizing the log-likelihood with respect to $\pi_k$ with the condition $\sum_{k=1}^K\pi_k=1$ (using Lagrange multiplier), we have:
 \begin{equation}
+\label{pik}
 \pi_k=\frac{\sum_{n=1}^N\tau_n^k}{N}
 \end{equation}
 
-However, as seen in \eqref{tau_bayes}, $\tau_n^k$ depends on the parameter estimates which depends on $\tau_n^k$. An idea would be to initialize the parameters and iterate. We calculate the posterior probability and then estimate the parameter $\theta$. This is the idea of the EM algorithm.
+However, as seen in \eqref{tau_bayes}, $\tau_n^k$ depends on the parameter estimatation $\hat\theta$ which depends on $\tau_n^k$ as seen in \eqref{muk},\eqref{sigmak} and \eqref{pik}. An idea would be to initialize the parameters and iterate. We calculate the posterior probability and then estimate the parameter $\theta$. This is the idea of the EM algorithm.
 \\
 
 \subsubsection{The EM algorithm for Gaussian Mixtures:}
@@ -171,23 +183,85 @@ However, as seen in \eqref{tau_bayes}, $\tau_n^k$ depends on the parameter estim
 \item[0.] Initialize parameters $\mu_k^0,\; \Sigma_k^0,\;\pi_k^0$
 \item Calculate (Expectation Step):
 \begin{equation}
-\tau_n^{k,(t+1)}=\frac{\pi_k^{(t)} \mathcal N(x_n|\mu_k^{(t)},\Sigma_k^{(t)})}{\sum_{i=1}^K\pi_i^{(t)}\mathcal N(x_n|\mu_i^{(t)},\Sigma_i^{(t)})}
+\label{posteriorEM}
+\tau_i^k(t+1)=\frac{\pi_k(t) \varphi_{(\mu_k(t),\Sigma_k(t))}(x_i)}{\sum_{k'=1}^K\pi_{k'}(t)\varphi_{(\mu_{k'},\Sigma_{k'})}(x_i)}
 \end{equation}
-\item Calculate (Maximization Step):
-\begin{equation}
- \begin{cases}
-\mu_k^{(t+1)}&=\frac{\sum_{n=1}^N\tau_n^{k,(t+1)} x_n}{\sum_{n=1}^N\tau_n^{k,(t+1)}}\\
-\Sigma_k^{(t+1)}&=\frac{\sum_{n=1}^N \tau_n^{k,(t+1)} (x_n-\mu_k^{(t+1)})(x_n-\mu_k^{(t+1)})^T}{\sum_{n=1}^N\tau_n^{(t+1)}}\\
-\pi_k^{(t+1)}&=\frac{\sum_{n=1}^N\tau_n^{(t+1)}}{N}
-\end{cases}
-\end{equation}
+\item Calculate (Maximization Step):\\
 
-\item Evaluate the log-likelihood and check for convergence
+We note: $\rho^k_i(t+1)=\frac{\tau_i^k(t+1)}{\sum_{j=1}^N\tau_j^k(t+1)}$, hence:
+
+\begin{align}
+\mu_k(t+1)&=\sum_{i=1}^N \rho^k_i(t+1) x_i\\
+\Sigma_k(t+1)&=\sum_{i=1}^N \rho^k_i(t+1) (x_i-\mu_k(t+1))(x_i-\mu_k(t+1))^T\\
+\pi_k(t+1)&=\frac{\sum_{i=1}^N\tau_i^k(t+1)}{N}
+\end{align}
+
+
+\item Evaluate the log-likelihood and check for convergence as explained in the following section
 \end{enumerate}
 
+\subsubsection{An analysis of the EM Algorithm convergence}
+\label{sec:emconv}
+
+As defined previously, we denote all observed variables $\bX$ and discrete variables $\bZ$. Our goal is to maximize the likelihood function\cite{Bishop}:
+
+\begin{equation}
+l(\theta|\bX)=log (p_{\theta}(\bX))=log\Big(\sum_{\bZ}p_{\theta}(\bX,\bZ) \Big)
+\end{equation}
+We introduce a distribution $q(\bZ)$ over the latent variables. We have:
+
+\begin{equation}
+\label{klem}
+l(\theta|\bX)=\mathcal{L}(q,\theta)+KL(q||p_{\theta})
+\end{equation}
+
+with:
+  \begin{align}
+\mathcal{L}(q,\theta)&=\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bX,\bZ)}{q(\bZ)}\Big)\\
+KL(q||p_{\theta})&=-\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bZ|\bX)}{q(\bZ)}\Big)
+  \end{align}
+
+To verify this identity, we will start by decomposing $\mathcal{L}(q,\theta)$:
+
+\begin{align}
+\mathcal{L}(q,\theta)&=\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bX,\bZ)}{q(\bZ)}\Big)=\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bX)p_{\theta}(\bZ|\bX)}{q(\bZ)}\Big)\\
+&=\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bZ|\bX)}{q(\bZ)}  \Big)  +\sum_{\bZ}q(\bZ)\log p_{\theta}(\bX)\\
+&=-KL(q||p_{\theta})+l(\theta|\bX)
+\end{align}
+
+$KL(q||p_{\theta})$ is the Kullback-Leibler divergence between $q(\bZ)$ and $p_{\theta}(\bZ|\bX)$. It satisfies $KL(q||p_{\theta})\geq0$. Therefore, $\mathcal{L}(q,\theta)\leq l(\theta|\bX) $. With the decomposition (\ref{klem}) we will prove that EM maximize the log-likelihood.\\
+
+If we observe the E-Step of EM, we hold $\theta^{old}=\{(\mu_k(t),\Sigma_k(t),\pi_k(t))\}$ and optimize the lower bound $\mathcal{L}(q,\theta^{old})$ with respect to $q$. Because $l(\theta^{old}|\bX)$ does not depend on $q(\bZ)$, we need to decrease $KL(q||p_{\theta^{old}})$ which disappear when $q^{new}(\bZ)=p_{\theta^{old}}(\bZ|\bX)$ as seen in (\ref{posteriorEM}). At this Step:
+
+\begin{equation}
+  \mathcal{L}(q^{new},\theta^{old})=l(\theta^{old}|\bX)
+\end{equation}
+
+In the M-Step, $q^{new}(\bZ)$ is fixed and we optimize $\mathcal{L}(q^{new},\theta)$ with respect to $\theta$. $l(\theta|\bX)$ depends on $\theta$ and will increase, fixing a new likelihood. And by optimizing $\theta$, $q(\bZ)$ is no longer equal to $p_{\theta^{new}}(\bZ|\bX)$ and we have a nonzero Kullback-Leibler divergence. Therefore, $l(\theta|\bX)$ will increase greater than $\mathcal{L}(q^{new},\theta)$\\
+
+If we decompose $\mathcal{L}(q,\theta)$:
+
+\begin{align}
+\mathcal{L}(q^{new},\theta)&=\sum_{\bZ}p_{\theta^{old}}(\bZ|\bX)\log\Big(\frac{p_{\theta}(\bX,\bZ)}{p_{\theta^{old}}(\bZ|\bX)}\Big)\\
+&=\sum_{\bZ}p_{\theta^{old}}(\bZ|\bX)\log p_{\theta}(\bZ|\bX) - \sum_{\bZ}p_{\theta^{old}}(\bZ|\bX)\log p_{\theta^{old}}(\bZ|\bX)\\
+&=\mathcal{Q}(\theta,\theta^{old})+H(q)
+\end{align}
+
+$\mathcal{Q}(\theta,\theta^{old})$ is the expectation of the complete log-likelihood and $H(q)$ is the entropy of $q$. Therefore, the M-Step is equivalent to maximize $\mathcal{Q}(\theta,\theta^{old})$ with respect to $\theta$:
+
+\begin{equation}
+  \theta^{new}=\argmax_{\theta}(\mathcal{Q}(\theta,\theta^{old}))
+\end{equation}
+
+A variant of EM, the Generalized EM (GEM) is based on the idea that it suffices to increase $Q$ and not necessarily find the maximum.(ref)\\
+
+As we saw in this section, each steps increase the log-likelihood and yields to a local maximum. By running EM over different initial parameters, we improve the estimation by choosing the best local maximum found.
+
+\subsubsection{Stopping criterion of EM}
+.
 \subsubsection{Limitations of the EM Algorithm:}
 
-EM is conceptually easy and each iteration improves $l(\theta)$. However, the complexity of EM algorithm is $O(dn+Kn^2)$ and it requires many iterations. Unfortunately, in our case, the algorithm slows down in the high dimensional setting. We hope to tackle this problem by making sparsity assumptions on the structure of the precision matrix $\Sigma^{-1}$.
+EM is conceptually easy and each iteration increases $l(\theta)$. However, the complexity at each step of EM algorithm is $O(dn+Kn^2)$ and it requires many iterations. Unfortunately, in our case, the algorithm slows down in the high dimensional setting. We hope to tackle this problem by making sparsity assumptions on the structure of the precision matrix $\Sigma^{-1}$.
 
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Draft-A structural analysis on $\bSigma$ approach}
@@ -311,6 +385,7 @@ with
 \subsection{The Square-Root Lasso}
 
 \section{Comments}
-\section{References}
+\bibliographystyle{plain}
+\bibliography{ref}
 
 \end{document}
