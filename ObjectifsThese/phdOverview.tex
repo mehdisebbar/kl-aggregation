@@ -1,22 +1,64 @@
-
-\documentclass[12pt]{article}
+\documentclass[a4paper,12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{amsmath}
 
 \usepackage{amssymb}
 \usepackage{amsmath}
-%\usepackage{amsthm}
+\usepackage{amsthm}
 \usepackage{amsopn}
 \usepackage{graphicx}
 \usepackage{mathrsfs}
 \usepackage{empheq}
 
+%\usepackage{psfrag}
+\usepackage{float}
+\usepackage{amsfonts}
+%\usepackage{epstopdf}
+\usepackage{dsfont}
+%\usepackage{xcolor,fancybox}
+\usepackage{url}
+\usepackage{pifont}
+
+% For algorithms
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{caption}
+% Need it for \caption*
+\usepackage{xspace}
+% Fix macro spacing bug
+
+\usepackage{tcolorbox}
+\definecolor{mycolor}{rgb}{0.122, 0.435, 0.698}
+
+\newtcbox{\mybox}{nobeforeafter,colframe=mycolor,colback=mycolor!10!white,boxrule=0.5pt,arc=4pt,
+  boxsep=0pt,left=6pt,right=6pt,top=6pt,bottom=6pt,tcbox raise base}
+
 \usepackage{tikz}
 \usetikzlibrary{fit,positioning}
 \usetikzlibrary{arrows}
 
+
 %\usepackage{showkeys}
+
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+\bibpunct{(}{)}{;}{a}{,}{,}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks = true,
+  urlcolor = blue,
+  linkcolor = blue,
+  citecolor = blue,
+}
+
+% Packages hyperref and algorithmic misbehave sometimes.  We can fix
+% this with the following command.
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+
+\usepackage{geometry}
+\geometry{a4paper, left=30mm, right=30mm, top=30mm, bottom=30mm, nohead}
+
 
 
 
@@ -26,7 +68,6 @@
 
 \let\bb\mathbb       % BlackBoardBold (double letters)
 
-\def\1{\mathbf 1}
 
   \def\AA{{\bb A}}\def\CC{{\bb C}}\def\DD{{\bb D}}\def\EE{{\bb E}}
   \def\GG{{\bb G}}\def\HH{{\bb H}}\def\KK{{\bb K}}\def\LL{{\bb L}}
@@ -48,12 +89,17 @@
 \def\hat{\widehat}
 \def\bfX{\mathbf X}
 \def\bfB{\mathbf B}
+\def\bfA{\mathbf A}
 \def\bSigma{\boldsymbol\Sigma}
 \def\bOmega{\boldsymbol\Omega}
 \def\bmu{\boldsymbol\mu}
 \def\bnu{\boldsymbol\nu}
+\def\btau{\boldsymbol\tau}
+\def\bTau{\boldsymbol{\mathcal T}}
+\def\btheta{{\boldsymbol\theta}}
+\def\bTheta{{\boldsymbol\Theta}}
 \def\bPi{\boldsymbol\Pi}
-\def\bX{\boldsymbol X}
+\def\bX{\boldsymbol X\!}
 \def\bx{\boldsymbol x}
 \def\bbeta{\boldsymbol \beta}
 \def\bY{\boldsymbol Y}
@@ -61,208 +107,272 @@
 \def\bpi{\boldsymbol \pi}
 \def\ci{\perp\!\!\!\perp}
 \def\bZ{\boldsymbol Z}
-
+\def\11{\mathds 1}
+\def\b1{\mathbf 1}
+\def\Pb{\mathbf P}
 
 \newcommand{\argmax}{\arg\!\max}
-
-\parskip=3pt
+\parindent=0pt
+\parskip=5pt
 \renewcommand{\baselinestretch}{1.08}
 
-\title{\vspace{-60pt}~\\Double sparsity in high-dimensional Gaussian mixture estimation and clustering\\Subject Overview}
-\author{\vspace{-20pt}~\\ Laboratory Supervisor: A.S. Dalalyan\\
-PHd Student: M. Sebbar}
+
+\newtheorem{rem}{Remark}
+\newtheorem{defi}{Definition}
+\newtheorem{lem}{Lemma}
+\newtheorem{cor}{Corollary}
+\newtheorem{pro}{Proposition}
+\newtheorem{theo}{Theorem}
+\newtheorem{fact}{Fact}
+
+
+\title{\vspace{-60pt}~\\\textbf{\textsf{Double sparsity in high-dimensional Gaussian mixture estimation and clustering}}\\[20pt]
+\textsf{Subject Overview}}
+\author{\vspace{-20pt}~\\ \textsf{Supervisor: A.S. Dalalyan}\\
+\textsf{PHd Student: M. Sebbar}}
 \date{\today}
 
 \begin{document}
 \maketitle
 \tableofcontents
 \newpage
+\section{Notation}
+For any vector $\bmu\in\RR^p$ and $p\times p$ matrix $\bSigma$ we denote by $\varphi_{\bmu,\bSigma}$ the probability density
+function of the Gaussian distribution $\mathcal N_p(\bmu,\bSigma)$ with mean $\bmu$ and covariance matrix $\bSigma$.
+The transpose of a matrix $\bfA $ is denoted by $\bfA ^\top$ while $|\bfA |$ stands for its determinant if $\bfA $ is a square matrix.
+The set of $p\times p$ positive semidefinite matrices is denoted $\mathcal S_+^p$, and the set of positive definite
+matrices is denoted by $\mathcal S_{++}^p$. We write $\b1_p$ for the $p$-vector $(1,\ldots,1)^\top$. For any integer $K>0$, we
+define $[K]$ as the set $\{1,\ldots,K\}$.
+
+
 \section{Introduction}
 The broad goal of this thesis is to tackle a clustering problem in the scope of mixtures model framework. More precisely, we will study the clustering of points drawn from high-dimensional Gaussian mixtures distributions.\\Thus, in the first part of this section we present the Gaussian mixture model and the second part we describe the well know  Expectation-Maximization algorithm (EM). We will also present the limitations of this algorithm in high-dimensional setting.
+
+
 \subsection{The Gaussian mixture model}
 
-The Gaussian mixture model is an important framework for clustering problems. The components are Gaussian distributions with parameters $(\mu_i,\Sigma_i)$:
+The Gaussian mixture model is an important framework for clustering problems. It assumes that the observations are drawn from a
+mixture distribution the components of which are Gaussian  with parameters $(\bmu_k,\bSigma_k)$:
 \begin{equation}
-\varphi_{(\mu_i,\Sigma_i)}(x)=\frac{1}{(2\pi)^{p/2}|\Sigma_i|^{1/2}} \exp(-\frac{1}{2}(x-\mu_i)^T\Sigma_i^{-1}(x-\mu_i))
+\varphi_{\bmu_k,\bSigma_k}(x)=\frac{1}{(2\pi)^{p/2}|\bSigma_k|^{1/2}} \exp\Big(-\frac{1}{2}(\bx-\bmu_k)^\top\bSigma_k^{-1}(\bx-\bmu_k)\Big)
 \end{equation}
 
-The density is given by:
-\begin{equation}
-p_{\theta}(x)=\sum_{k=1}^K\pi_k\varphi_{(\mu_k,\Sigma_k)}(x)
+Let $\btheta$ be the list containing all the unknown parameters of a Gaussian mixture model: the family of means $\bmu = (\bmu_1,\ldots,\bmu_K)
+\in (\RR^p)^K$, the family of covariance matrices $\bSigma = (\bSigma_1,\ldots,\bSigma_k)\in(\mathcal S_{++}^p)^K$ and the vector of cluster probabilities  $\bpi=(\pi_1,\ldots,\pi_k)\in [0,1]^K$ such that $\b1_p^\top\bpi=1$.
+The density of one observation $\bX_1$ is then given by:
+\begin{equation}\label{mixture}
+p_{\btheta}(\bx)=\sum_{k=1}^K\pi_k\varphi_{\bmu_k,\bSigma_k}(\bx),\qquad \forall \bx\in\RR^p,
 \end{equation}
-with $\theta=\{(\mu_k,\Sigma_k,\pi_k): 1\leq k\leq K; \; \Sigma_k \geq 0;\; \pi_k>0  \;\forall k\; and \;\sum_{k=1}^K\pi_k=1 \}$
-\\
+where $\btheta=(\bmu,\bSigma,\bpi)$.
 
-This model can be interpreted from a latent variable perspective. Let $Z$ be a multionomial random variable of parameters $\mu(1,\bpi)$, we have:
+This model can be interpreted from a latent variable perspective. Let $Z$ be a discrete random variable
+taking its values in the set $[K]$ and such that $\Pb(Z=k) = \pi_k$ for every $k\in[K]$. The random variable $Z$
+indicates the cluster from which the observation $\bX$ is drawn.  Considering that all the conditional distributions
+$\bX|Z=k$ are Gaussian, we get the following formula for the marginal density of $X$:
 \begin{equation}
-p_{\theta}(x)=\sum_{k=1}^K P_{\theta}(Z^k=1)p_{\theta}(x|Z^k=1)
+p_{\btheta}(\bx)=\sum_{k=1}^K \Pb(Z=k)p_{\theta}(\bx|Z=k) = \sum_{k=1}^K\pi_k\varphi_{\bmu_k,\bSigma_k}(\bx),\qquad \forall \bx\in\RR^p.
 \end{equation}
-Therefore $\pi_k=p_{\theta}(Z^k=1)$ and reflects the probability that $x$ is drawn from the $k^{th}$ mixture component.\\
-
-In the clustering problem, the goal is to assign $X$ to a cluster and therefore estimate the probability of the latent variable $Z$ conditioned on $X$ which we denote $\tau^k(x,\theta)=p_{\theta}(Z^k=1|x)$. From Bayes's rule we have:
-
+In the clustering problem, the goal is to assign $X$ to a cluster or, equivalently, to predict the cluster $Z$ of the vector $\bX$.
+A prediction function in such a context is $g:\RR^p\to[K]$ such that $g(\bX)$ is as close as possible to $Z$. If we measure the
+risk of a prediction function $g$ in terms of misclassification error rate $R_\btheta(g) = \Pb_\btheta(g(\bX)\not=Z)$, then it is
+well known that the optimal (Bayes) predictor $g^*_\btheta \in \arg\min_g R_\btheta(g)$ is provided by the rule
+$$
+g^*_\btheta(\bx) = \arg\max_{k\in [K]} \tau_k(\bx,\btheta),
+$$
+where $\tau_k(\bx,\btheta)=p_{\btheta}(Z=k|\bX=\bx)$ stands for the conditional probability of the latent variable $Z$ given $\bX$.
+In the Gaussian mixture model, Bayes's rule implies that
 \begin{equation}
 \label{tau_bayes}
-\tau^k(x,\theta)=\frac{p_{\theta}(x|Z^k=1)P_{\theta}(Z^k=1)}{p_{\theta}(x)}
-=\frac{\pi_k\varphi_{(\mu_k,\Sigma_k)}(x)}{\sum_{k'=1}^K\pi_{k'}\varphi_{(\mu_{k'},\Sigma_{k'})}(x)}
+\tau_k(\bx,\btheta)=\frac{p_{\btheta}(\bx|Z=k)\Pb(Z=k)}{p_{\btheta}(\bx)}
+=\frac{\pi_k\varphi_{\bmu_k,\bSigma_k}(\bx)}{\sum_{k'=1}^K\pi_{k'}\varphi_{\bmu_{k'},\bSigma_{k'}}(\bx)}
 \end{equation}
 
-The of estimation  $\tau^k(x,\theta)$ rely on computing the parameters $\theta$. An approach to this problem is to estimate the parameter that maximize the likelihood.\\
+Since the true value of the parameter $\btheta$ is not available, formula (\ref{tau_bayes}) can not be
+directly used for solving the problem of clustering. Instead, a natural strategy is to estimate $\btheta$
+by some vector $\hat\btheta$, based on a sample $\bX_1,\ldots,\bX_n$ drawn from the density $p_\btheta$, and
+then to define the clustering rule by
+\begin{equation}
+\label{gen_clust}
+\hat g(\bx) = g^*_{\hat\btheta}(\bx)=\arg\max_{k\in [K]} \tau_k(\bx,\hat\btheta)=\arg\max_{k\in [K]}\
+\hat\pi_k\varphi_{\hat\bmu_k,\hat\bSigma_k}(\bx).
+\end{equation}
+A common approach to estimating the parameter $\btheta$ is to rely on the likelihood maximization.
 
-Let $X_1,\dots,X_N$ with $X_i\in \RR^p$ a set of iid observations drawn from $p_{\theta}$. The related graphical model is:
+Let $\bX_1,\dots,\bX_n$ with $\bX_i\in \RR^p$ be a set of iid observations drawn from the density $p_{\btheta}$
+given by (\ref{mixture}). The following graphical model depicts the scheme of the observations:
 
 %%GRAPH of pgm
 \begin{figure}[h]
-\centering
+\centering\small
 \begin{tikzpicture}
-\tikzstyle{main}=[circle, minimum size = 10mm, thick, draw =black!80, node distance = 16mm]
+\tikzstyle{main}=[circle, minimum size = 6mm, thick, draw =black!80, node distance = 10mm]
 
 \tikzstyle{connect}=[-latex, thick]
 \tikzstyle{box}=[rectangle, draw=black!100]
-  \node[main, fill = black!50] (x) [label=below:{$X_i$}] { };
+  \node[main, fill = black!50] (x) [label=below:{$\bX_i$}] { };
   \node[main] (z) [above=of x,label=above:{$Z_i$}] {};
 
   \path (z) edge [connect] (x);
 
   \node[rectangle, inner sep=7mm,draw=black!100, fit= (z) (x)] {};
-\node[rectangle, below=of x, inner sep=-10mm, fit= (z) (x),label=below right:N, xshift=7mm,yshift=-9mm] {};
+\node[rectangle, below=of x, inner sep=-10mm, fit= (z) (x),label=below right:{$\!\mathcal N$}, xshift=4mm,yshift=-2mm] {};
 
-\node[main,draw=none] (a) [right=of x] {$\{\mu_k\}$};
+\node[main,draw=none] (a) [right=of x] {$\{\bmu_k\}$};
 \path (a) edge [connect] (x);
-\node[main,draw=none] (b) [left=of x] {$\{\Sigma_k\}$};
+\node[main,draw=none] (b) [left=of x] {$\{\bSigma_k\}$};
 \path (b) edge [connect] (x);
 \node[main,draw=none] (c) [right=of z] {$\{\pi_k\}$};
 \path (c) edge [connect] (z);
 \end{tikzpicture}
 \end{figure}
 
-The log-likelihood is:
-
-\begin{equation}
-l(\theta|x_1,\dots,x_N)=\sum_{i=1}^{N}\log{p_{\theta}(x_i)}=\sum_{i=1}^{N}\log\Big({\sum_{k=1}^K\pi_k\varphi_{(\mu_{k},\Sigma_{k})}(x_i)}\Big)
+The log-likelihood of the Gaussian mixture model is
+\begin{equation}\label{log-likelihood}
+\ell_n(\btheta)=\sum_{i=1}^{n}\log{p_{\btheta}(\bx_i)}=
+\sum_{i=1}^{n}\log\bigg\{{\sum_{k=1}^K\pi_k\varphi_{(\bmu_{k},\bSigma_{k})}(\bx_i)}\bigg\}.
 \end{equation}
+Because of the presence in this equation of the logarithm of a sum, the maximization of the log-likelihood is
+a difficult nonlinear and nonconvex problem. In particular, this is not a exponential family distribution yielding simple expressions.
+A commonly used approach for approximately maximizing (\ref{log-likelihood}) with respect to $\btheta$ is the Expectation-Maximization
+(EM) Algorithm \citep{dempster77} that we recall below.
 
-In this equation, we have the logarithm of a sum and the maximization of the log-likelihood is a non-linear problem. (This is not a exponential family distribution where the log acts on a simple probability distribution and therefore yields simple expressions).\\
-A well known approach for computing the maximum of log-likelihood is the Expectation-Maximization Algorithm \cite{dempster77}.
+Summarizing the content of this section, we can describe the following  natural approach to solving the clustering problem under Gaussian
+mixture modeling assumption:
+\begin{figure}[H]
+\begin{center}
+\mybox{
+\begin{minipage}{0.85\linewidth}
+\begin{algorithmic}%[1]\tt
+\small
+\STATE {\bfseries Input:} data vectors $\bx_1,\ldots,\bx_n\in\RR^p$ and the number of clusters $K$
+\STATE {\bfseries Output:} function  $\hat g : \RR^p\to [K]$
+\STATE {\tt 1: Estimate $\btheta=(\bpi,\bmu,\bSigma)$ by maximizing the log-likelihood:}
+\begin{align}\label{step:1}
+\hat\btheta
+    &\in\arg\max_{\btheta\in\bTheta}  \ell(\btheta|\bx_1,\dots,\bx_n)
+    =\arg\max_{\bpi,\bmu,\bSigma}  \sum_{i=1}^{n}\log\bigg\{{\sum_{k=1}^K\pi_k\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)}\bigg\}.
+\end{align}
+\STATE {\tt 2: Output the clustering rule:}
+\begin{equation}
+\label{step:2}
+\hat g(\cdot) = \arg\max_{k\in [K]} \hat\pi_k\varphi_{\hat\bmu_k,\hat\bSigma_k}(\cdot).
+\end{equation}
+\end{algorithmic}
+\end{minipage}}
+   \caption{Clustering under Gaussian mixture modeling}
+   \label{algo:general}
+\end{center}
+\vspace{-15pt}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%
 
-\subsection{The EM Algorithm}
+\subsection{EM Algorithm}
 
-We will infer the values of $\{z_n\}$ conditioned to the data $\{x_n\}$. A natural approach to infer the parameters $\theta$ is to estimate the mean of each class by computing the partial derivative of the log-likelihood with respect to $\mu_k$ and setting to 0. We have:
+The goal of the EM algorithm is to approximate a solution of the problem \eqref{step:1}.
+Since this optimization problem contains a nonconvex cost function, it is impossible to
+design a polynomial time algorithm that provably converges to the global maximum point. Instead,
+the EM algorithm provides a sequence $\{\hat\btheta(t)\}_{t\in\NN}$ of parameter values such that
+the cost function (\textit{i.e.}, the log-likelihood) evaluated at these values forms an
+increasing sequence that converges to a local maximum.
 
-
-\begin{equation}
-\sum_{i=1}^N\frac{\pi_k\varphi_{(\mu_k,\Sigma_k)}(x_i)}{\sum_{k'=1}^K\pi_{k'}\varphi_{(\mu_{k'},\Sigma_{k'})}(x_i)} \Sigma_k^{-1}(x_i-\mu_k)=\sum_{i=1}^N \tau_i^k \Sigma_k^{-1}(x_i-\mu_k)=0
+The main idea underlying the EM algorithm is the following representation of the log-likelihood
+of one observation:
+\begin{equation}\label{hint}
+\log\bigg\{{\sum_{k=1}^K\pi_k\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)}\bigg\} =
+\max_{\substack{\btau\in[0,1]^K \\ \btau^\top \b1_K=1}} \sum_{k=1}^K \Big\{\tau_{k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{k} \log(\pi_k/\tau_{k})\Big\}.
 \end{equation}
-Assuming that $\Sigma_k$ is non singular, we have:
-
-\begin{equation}
-\label{muk}
-\mu_k=\frac{\sum_{n=1}^N\tau_n^k x_n}{\sum_{n=1}^N\tau_n^k}
-\end{equation}
-
-Doing a similar computation for $\Sigma_k$, we have:
-
-\begin{equation}
-\label{sigmak}
-\Sigma_k=\frac{\sum_{n=1}^N \tau_n^k (x_n-\mu_k)(x_n-\mu_k)^T}{\sum_{n=1}^N\tau_n^k}
-\end{equation}
-
-Finally, maximizing the log-likelihood with respect to $\pi_k$ with the condition $\sum_{k=1}^K\pi_k=1$ (using Lagrange multiplier), we have:
-\begin{equation}
-\label{pik}
-\pi_k=\frac{\sum_{n=1}^N\tau_n^k}{N}
-\end{equation}
-
-However, as seen in \eqref{tau_bayes}, $\tau_n^k$ depends on the parameter estimatation $\hat\theta$ which depends on $\tau_n^k$ as seen in \eqref{muk},\eqref{sigmak} and \eqref{pik}. An idea would be to initialize the parameters and iterate. We calculate the posterior probability and then estimate the parameter $\theta$. This is the idea of the EM algorithm.
-\\
-
-\subsubsection{The EM algorithm for Gaussian Mixtures:}
-\begin{enumerate}
-\item[0.] Initialize parameters $\mu_k^0,\; \Sigma_k^0,\;\pi_k^0$
-\item Calculate (Expectation Step):
-\begin{equation}
-\label{posteriorEM}
-\tau_i^k(t+1)=\frac{\pi_k(t) \varphi_{(\mu_k(t),\Sigma_k(t))}(x_i)}{\sum_{k'=1}^K\pi_{k'}(t)\varphi_{(\mu_{k'},\Sigma_{k'})}(x_i)}
-\end{equation}
-\item Calculate (Maximization Step):\\
-
-We note: $\rho^k_i(t+1)=\frac{\tau_i^k(t+1)}{\sum_{j=1}^N\tau_j^k(t+1)}$, hence:
-
-\begin{align}
-\mu_k(t+1)&=\sum_{i=1}^N \rho^k_i(t+1) x_i\\
-\Sigma_k(t+1)&=\sum_{i=1}^N \rho^k_i(t+1) (x_i-\mu_k(t+1))(x_i-\mu_k(t+1))^T\\
-\pi_k(t+1)&=\frac{\sum_{i=1}^N\tau_i^k(t+1)}{N}
+Let us denote by $\bTau = (\tau_{i,k})$ a $n\times K$ matrix with nonnegative entries such that $\bTau\b1_K = \b1_n$, that is each 
+row of $\bTau$ is a probability distribution on $[K]$. Combining \eqref{step:1} and \eqref{hint}, we get
+\begin{align}\label{eq:3}
+\hat\btheta
+    &\in\arg\max_{\btheta=(\bpi,\bmu,\bSigma)}\max_{\bTau}  
+    \sum_{i=1}^{n} \sum_{k=1}^K \Big\{\tau_{i,k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{i,k} 
+    \log(\pi_k/\tau_{i,k})\Big\}.
 \end{align}
+The great advantage of this new representation of the log-likelihood function is that the cost 
+function in \eqref{eq:3}, considered as a function of $\btheta$ and $\bTau$, is biconcave, \textit{i.e.}, 
+it is concave with respect to $\btheta$ for every fixed $\bTau$ and concave with respect to $\bTau$ for 
+every fixed $\btheta$. In such a situation, one can apply the alternating maximization approach to sequentially  
+improve on an initial point. In the present context, an additional attractive feature of the cost function
+in \eqref{eq:3} is that the two optimization problems involved in the alternating maximization procedure
+admit explicit solutions. 
+
+\begin{figure}[ht]
+\begin{center}
+\mybox{
+\begin{minipage}{0.85\linewidth}
+\begin{algorithmic}%[1]\tt
+%\SetLine%\SetAlgoLined
+\small
+\STATE {\bfseries Input:} data vectors $\bx_1,\ldots,\bx_n\in\RR^p$ and the number of clusters $K$
+\STATE {\bfseries Output:} parameter estimate $\hat\btheta = \{\hat\bmu_k,\hat\bSigma_k,\pi_k\}_{k\in[K]}$
+\STATE {\tt 1: Initialize $t=0$, $\btheta=\btheta^0$.}
+\STATE {\tt 2: {\bf Repeat}}
+\STATE \qquad {\tt 3: Update the parameter $\bTau$:}
+\begin{align*}
+\tau_{i,k}^{t}  &= \frac{\pi_k^{t}\varphi_{\bmu_k^{t},\bSigma_k^{t}}(\bx_i)}{\sum_{k'\in[K]}\pi^{t}_{k'}\varphi_{\bmu^{t}_{k'},\bSigma^{t}_{k'}}(\bx_i)}.
+\end{align*}
+\STATE \qquad{\tt 4: Update the parameter $\btheta$:}
+\begin{align*}
+\pi_k^{t+1}     &= \frac1n\sum_{i=1}^n \tau_{i,k}^t,\qquad
+\bmu_k^{t+1}    = \frac1{n\pi_k^{t+1}}\sum_{i=1}^n \tau_{i,k}^t\bx_i,\\
+\bSigma_k^{t+1} &= \frac1{n\pi_k^{t+1}}\sum_{i=1}^n \tau_{i,k}^t(\bx_i-\bmu_k^{t+1})(\bx_i-\bmu_k^{t+1})^\top.
+\end{align*}
+\STATE \qquad {\tt 5: increment $t$: $t=t+1$}.
+\STATE {\tt 6: {\bf Until} stopping rule.}
+\STATE {\tt 7: {\bf Return} $\btheta^{t}$}.
+\end{algorithmic}
+\end{minipage}}
+   \caption{EM algorithm for Gaussian mixtures}
+   \label{algo:EM}
+\end{center}
+\end{figure}
 
 
-\item Evaluate the log-likelihood and check for convergence as explained in the following section
-\end{enumerate}
-
-\subsubsection{An analysis of the EM Algorithm convergence}
-\label{sec:emconv}
-
-As defined previously, we denote all observed variables $\bX$ and discrete variables $\bZ$. Our goal is to maximize the likelihood function\cite{Bishop}:
-
+\begin{lem}  
+Let us introduce the cost function
 \begin{equation}
-l(\theta|\bX)=log (p_{\theta}(\bX))=log\Big(\sum_{\bZ}p_{\theta}(\bX,\bZ) \Big)
+F(\btheta,\bTau) = \sum_{i=1}^{n} \sum_{k=1}^K \Big\{\tau_{i,k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{i,k}
+    \log(\pi_k/\tau_{i,k})\Big\}.
 \end{equation}
-We introduce a distribution $q(\bZ)$ over the latent variables. We have:
-
-\begin{equation}
-\label{klem}
-l(\theta|\bX)=\mathcal{L}(q,\theta)+KL(q||p_{\theta})
-\end{equation}
-
-with:
-  \begin{align}
-\mathcal{L}(q,\theta)&=\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bX,\bZ)}{q(\bZ)}\Big)\\
-KL(q||p_{\theta})&=-\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bZ|\bX)}{q(\bZ)}\Big)
-  \end{align}
-
-To verify this identity, we will start by decomposing $\mathcal{L}(q,\theta)$:
-
+Then, the following two optimization problems
 \begin{align}
-\mathcal{L}(q,\theta)&=\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bX,\bZ)}{q(\bZ)}\Big)=\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bX)p_{\theta}(\bZ|\bX)}{q(\bZ)}\Big)\\
-&=\sum_{\bZ}q(\bZ)\log\Big(\frac{p_{\theta}(\bZ|\bX)}{q(\bZ)}  \Big)  +\sum_{\bZ}q(\bZ)\log p_{\theta}(\bX)\\
-&=-KL(q||p_{\theta})+l(\theta|\bX)
+\hat\btheta(\bTau)&\in \arg\max_{\btheta} F(\btheta,\bTau),\qquad \hat\bTau(\btheta)\in \arg\max_{\bTau} F(\btheta,\bTau)
 \end{align}
-
-$KL(q||p_{\theta})$ is the Kullback-Leibler divergence between $q(\bZ)$ and $p_{\theta}(\bZ|\bX)$. It satisfies $KL(q||p_{\theta})\geq0$. Therefore, $\mathcal{L}(q,\theta)\leq l(\theta|\bX) $. With the decomposition (\ref{klem}) we will prove that EM maximize the log-likelihood.\\
-
-If we observe the E-Step of EM, we hold $\theta^{old}=\{(\mu_k(t),\Sigma_k(t),\pi_k(t))\}$ and optimize the lower bound $\mathcal{L}(q,\theta^{old})$ with respect to $q$. Because $l(\theta^{old}|\bX)$ does not depend on $q(\bZ)$, we need to decrease $KL(q||p_{\theta^{old}})$ which disappear when $q^{new}(\bZ)=p_{\theta^{old}}(\bZ|\bX)$ as seen in (\ref{posteriorEM}). At this Step:
-
-\begin{equation}
-  \mathcal{L}(q^{new},\theta^{old})=l(\theta^{old}|\bX)
-\end{equation}
-
-In the M-Step, $q^{new}(\bZ)$ is fixed and we optimize $\mathcal{L}(q^{new},\theta)$ with respect to $\theta$. $l(\theta|\bX)$ depends on $\theta$ and will increase, fixing a new likelihood. And by optimizing $\theta$, $q(\bZ)$ is no longer equal to $p_{\theta^{new}}(\bZ|\bX)$ and we have a nonzero Kullback-Leibler divergence. Therefore, $l(\theta|\bX)$ will increase greater than $\mathcal{L}(q^{new},\theta)$\\
-
-If we decompose $\mathcal{L}(q,\theta)$:
-
+has explicit solutions given by
 \begin{align}
-\mathcal{L}(q^{new},\theta)&=\sum_{\bZ}p_{\theta^{old}}(\bZ|\bX)\log\Big(\frac{p_{\theta}(\bX,\bZ)}{p_{\theta^{old}}(\bZ|\bX)}\Big)\\
-&=\sum_{\bZ}p_{\theta^{old}}(\bZ|\bX)\log p_{\theta}(\bZ|\bX) - \sum_{\bZ}p_{\theta^{old}}(\bZ|\bX)\log p_{\theta^{old}}(\bZ|\bX)\\
-&=\mathcal{Q}(\theta,\theta^{old})+H(q)
+\hat\pi_k     &= \frac1n\sum_{i=1}^n \tau_{i,k},\qquad\hat\bmu_k = \frac1{n\hat\pi_k}\sum_{i=1}^n \tau_{i,k}\bx_i ,\qquad \forall k\in[K],\\
+\hat\bSigma_k &= \frac1{n\hat\pi_k}\sum_{i=1}^n \tau_{i,k}(\bx_i-\hat\bmu_k)(\bx_i-\hat\bmu_k)^\top,\qquad\forall k\in[K],\\
+\hat\tau_{i,k}&= \frac{\pi_k\varphi_{\bmu_k,\bSigma_k}(\bx_i)}{\sum_{k'\in[K]}\pi_{k'}\varphi_{\bmu_{k'},\bSigma_{k'}}(\bx_i)},\qquad\forall k\in[K],\ \forall i\in[n].
 \end{align}
+\end{lem}
 
-$\mathcal{Q}(\theta,\theta^{old})$ is the expectation of the complete log-likelihood and $H(q)$ is the entropy of $q$. Therefore, the M-Step is equivalent to maximize $\mathcal{Q}(\theta,\theta^{old})$ with respect to $\theta$:
+Based on this result, the EM algorithm is defined as in Figure~\ref{algo:EM}.  
+The algorithm operates iteratively and needs a criterion to determine when
+the iterations should be stopped. There is no clear consensus on this point in the
+statistical literature, but it is a commonly used  practice to stop when one of the
+following conditions is fulfilled:
+\begin{description}
+\item[i)]  The number of iterations $t$ exceeds a pre-specified level $t_{\max}$. 
+\item[ii)] The increase of the log-likelihood over past $t_0$ iterations is not 
+significantly different from zero: $\ell_n(\btheta^{t})-\ell_n(\btheta^{t-t_0})\le \varepsilon$ 
+for some pre-specified values $t_0\in\NN$ and $\varepsilon>0$. 
+\end{description}
+EM is conceptually easy and each iteration increases the log-likelihood:
+$$
+\ell_n(\btheta^{t+1})\ge \ell_n(\btheta^{t}),\qquad \forall t\in\NN. 
+$$
+The complexity at each step of the EM algorithm is $O(Knp^2)$ and 
+it usually requires many iterations to converge. In a high-dimensional setting 
+when $p$ is large, the quadratic dependence on $p$ may result in prohibitively 
+large running times. However, the computation of the elements of the covariance
+matrices $\bSigma^t_k$ and the mean vectors $\bmu^t_k$ can be parallelized which 
+may lead to considerable savings in the running time. 
 
-\begin{equation}
-  \theta^{new}=\argmax_{\theta}(\mathcal{Q}(\theta,\theta^{old}))
-\end{equation}
 
-A variant of EM, the Generalized EM (GEM) is based on the idea that it suffices to increase $Q$ and not necessarily find the maximum.(ref)\\
-
-As we saw in this section, each steps increase the log-likelihood and yields to a local maximum. By running EM over different initial parameters, we improve the estimation by choosing the best local maximum found.
-
-\subsubsection{Stopping criterion of EM}
-.
-\subsubsection{Limitations of the EM Algorithm:}
-
-EM is conceptually easy and each iteration increases $l(\theta)$. However, the complexity at each step of EM algorithm is $O(dn+Kn^2)$ and it requires many iterations. Unfortunately, in our case, the algorithm slows down in the high dimensional setting. We hope to tackle this problem by making sparsity assumptions on the structure of the precision matrix $\Sigma^{-1}$.
-
+\newpage
 %%%%%%%%%%%%%%%%%%%%%%
 \section{Draft-A structural analysis on $\bSigma$ approach}
 
