@@ -139,7 +139,7 @@ Let us denote by $\bTau = (\tau_{i,k})$ a $n\times K$ matrix with nonnegative en
 row of $\bTau$ is a probability distribution on $[K]$. Combining \eqref{step:1} and \eqref{hint}, we get
 \begin{align}\label{eq:3}
 \hat\btheta
-    &\in\arg\max_{\btheta=(\bpi,\bmu,\bSigma)}\max_{\bTau}
+    &\in\argmax_{\btheta=(\bpi,\bmu,\bSigma)}\max_{\bTau}
     \sum_{i=1}^{n} \sum_{k=1}^K \Big\{\tau_{i,k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{i,k}
     \log(\pi_k/\tau_{i,k})\Big\}.
 \end{align}
@@ -184,6 +184,7 @@ admit explicit solutions.
 
 
 \begin{lem}
+\label{lemma1}
 Let us introduce the cost function
 \begin{equation}
 F(\btheta,\bTau) = \sum_{i=1}^{n} \sum_{k=1}^K \Big\{\tau_{i,k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{i,k}
@@ -195,8 +196,10 @@ Then, the following two optimization problems
 \end{align}
 has explicit solutions given by
 \begin{align}
+\label{em-sols}
 \hat\pi_k     &= \frac1n\sum_{i=1}^n \tau_{i,k},\qquad\hat\bmu_k = \frac1{n\hat\pi_k}\sum_{i=1}^n \tau_{i,k}\bx_i ,\qquad \forall k\in[K],\\
 \hat\bSigma_k &= \frac1{n\hat\pi_k}\sum_{i=1}^n \tau_{i,k}(\bx_i-\hat\bmu_k)(\bx_i-\hat\bmu_k)^\top,\qquad\forall k\in[K],\\
+\label{em-sols-tau}
 \hat\tau_{i,k}&= \frac{\pi_k\varphi_{\bmu_k,\bSigma_k}(\bx_i)}{\sum_{k'\in[K]}\pi_{k'}\varphi_{\bmu_{k'},\bSigma_{k'}}(\bx_i)},\qquad\forall k\in[K],\ \forall i\in[n].
 \end{align}
 \end{lem}

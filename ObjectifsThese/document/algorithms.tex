@@ -1,55 +1,106 @@
 \section{Algorithm 1: penalized-EM approach}
 This algorithm is inspired by the EM algorithm. The penalized log-likelihood of the Gaussian mixture model is
-\begin{equation}\label{log-likelihood}
-\ell_n(\btheta)=\sum_{i=1}^{n}\log{p_{\btheta}(\bx_i)}=
-\sum_{i=1}^{n}\log\bigg\{{\sum_{k=1}^K\pi_k\varphi_{(\bmu_{k},\bSigma_{k})}(\bx_i)}\bigg\}.
+
+\begin{equation}\label{pen-log-likelihood}
+\ell_n^{pen}(\btheta)=\sum_{i=1}^{n}\log{p_{\btheta}(\bx_i)}+pen(\btheta)=
+\sum_{i=1}^{n}\log\bigg\{{\sum_{k=1}^K\pi_k\varphi_{(\bmu_{k},\bSigma_{k})}(\bx_i)}\bigg\} +pen(\btheta) .
 \end{equation}
 
-\begin{enumerate}
-\item[0.] Initialize parameters $\mu_k^0,\; \Omega_k^0,\;\pi_k^0$
-\item Compute (Expectation Step):
-\begin{equation}
-\label{posteriorEM}
-\tau_i^k(t+1)=\frac{\pi_k(t) \varphi_{(\mu_k(t),\Omega_k(t))}(x_i)}{\sum_{k'=1}^K\pi_{k'}(t)\varphi_{(\mu_{k'},\Omega_{k'})}(x_i)}
-\end{equation}
+Using the same representation as \ref{eq:3} we get:
 
-\item Compute (Maximization Step):\\
-
-We note:
-\\$\rho^k_i(t+1)=\frac{\tau_i^k(t+1)}{\sum_{j=1}^N\tau_j^k(t+1)}$ and\\
-$S_{N,k}=\sum_{i=1}^N \rho^k_i(t+1) (x_i-\mu_k(t+1))(x_i-\mu_k(t+1))^T$\\
-
-\begin{align}
-\mu_k(t+1)&=\sum_{i=1}^N \rho^k_i(t+1) x_i\\
-\Omega_k(t+1) & \in \argmin_{ \Omega\succeq 0} \Big\{ \frac{1}{2}-\log| \Omega |-\frac{1}{2} tr(S_{N,k}\Omega)+\lambda_k||\Omega||_{1,1}\Big\}\\
-\pi_k(t+1)&=\frac{\sum_{i=1}^N\tau_i^k(t+1)}{N}
+\begin{align}\label{eq:4}
+\hat\btheta
+    &\in\argmax_{\btheta=(\bpi,\bmu,\bSigma)}\max_{\bTau}
+    \bigg\{\sum_{i=1}^{n} \sum_{k=1}^K \Big\{\tau_{i,k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{i,k}
+    \log(\pi_k/\tau_{i,k})\Big\}+pen(\btheta)\bigg\}.
 \end{align}
-\item Check convergence, for instance:\\
-$$
-\ell(\btheta^{t+1})-\ell(\btheta^{t})<\epsilon,\qquad \forall t\in\NN.
-$$
-Otherwise, go back to step 1.
-\end{enumerate}
+
+In this problem, we suppose that each feature $Y_i$ is independent from $Y_j$ given the other features $Y_l \text{ with } l\in[p]$. This property is evaluated by the sparsity of $\bOmega_k=\bSigma_k^{-1}$ given a cluster $k$.
+Therefore, we chose $pen(\theta_k)=\lambda_k||\bOmega_k||_{1,1}$ with $\lambda_k\in\RR^+$.\\
+
+The optimization problem of the cost function
+\begin{equation}
+\label{cost_fun_pen}
+F^{pen}(\btheta,\bTau)  = \sum_{i=1}^{n} \sum_{k=1}^K \Big\{\tau_{i,k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{i,k}
+    \log(\pi_k/\tau_{i,k})\Big\}-\lambda_k||\bOmega_k||_{1,1}.
+\end{equation}
+is the same as the cost function defined in lemma \ref{lemma1} regarding the variables $(\bpi,\bmu)$ and $\bTau$ and expressions are given in \ref{em-sols} and \ref{em-sols-tau}. However, the penality is exploited in the optimization regarding $\bSigma_k$.\\
+
+We introduce
+\begin{equation}
+    S_{N,k}=\frac{\sum_{n=1}^N\tau_{n,k}(x_n-\hat\mu_k)(x_n-\hat\mu_k)^\top}{\sum_{n=1}^N\tau_{n,k}}
+\end{equation}
+For a given $k\in[K]$, considering that $\bOmega_k=\bSigma_k^{-1}$ and the opposite minimization problem regarding $\bOmega_k$, the  equation \ref{cost_fun_pen} can be rewritten as:
+\begin{equation}
+    F^{pen}(\btheta,\bTau)  = -\frac{1}{2}\log| \Omega |-\frac{1}{2} tr(S_{N,k}\Omega)+\lambda_k||\Omega||_{1,1}
+\end{equation}
+and the minimization problem is:
+\begin{equation}
+    \bOmega_k \in \argmin_{ \Omega\succeq 0} \Big\{ -\frac{1}{2}\log| \Omega |-\frac{1}{2} tr(S_{N,k}\Omega)+\lambda_k||\Omega||_{1,1}\Big\}
+\end{equation}
+
+
+\begin{figure}[H]
+\begin{center}
+\mybox{
+\begin{minipage}{0.85\linewidth}
+\begin{algorithmic}%[1]\tt
+%\SetLine%\SetAlgoLined
+\small
+\STATE {\bfseries Input:} data vectors $\bx_1,\ldots,\bx_n\in\RR^p$ and the number of clusters $K$
+\STATE {\bfseries Output:} parameter estimate $\hat\btheta = \{\hat\bmu_k,\hat\bOmega_k,\pi_k\}_{k\in[K]}$
+\STATE {\tt 1: Initialize $t=0$, $\btheta=\btheta^0$.}
+\STATE {\tt 2: {\bf Repeat}}
+\STATE \qquad {\tt 3: Update the parameter $\bTau$:}
+\begin{align*}
+\tau_{i,k}^{t}  &= \frac{\pi_k^{t}\varphi_{\bmu_k^{t},\bOmega_k^{t}}(\bx_i)}{\sum_{k'\in[K]}\pi^{t}_{k'}\varphi_{\bmu^{t}_{k'},\bOmega^{t}_{k'}}(\bx_i)}.
+\end{align*}
+\STATE \qquad{\tt 4: Update the parameter $\btheta$:}
+\begin{align*}
+\pi_k^{t+1}     &= \frac1n\sum_{i=1}^n \tau_{i,k}^t,\qquad
+\bmu_k^{t+1}    = \frac1{n\pi_k^{t+1}}\sum_{i=1}^n \tau_{i,k}^t\bx_i,\\
+\bOmega_k^{t+1} & \in \argmin_{ \Omega\succeq 0} \Big\{ -\frac{1}{2}\log| \Omega |-\frac{1}{2} tr(S_{N,k}\Omega)+\lambda_k||\Omega||_{1,1}\Big\} \\.
+\end{align*}
+\STATE \qquad {\tt 5: increment $t$: $t=t+1$}.
+\STATE {\tt 6: {\bf Until} stopping rule.}
+\STATE {\tt 7: {\bf Return} $\btheta^{t}$}.
+\end{algorithmic}
+\end{minipage}}
+   \caption{Penalised EM algorithm for Gaussian mixtures}
+   \label{algo:PEM}
+\end{center}
+\end{figure}
 
 \section{Algorithm 2}
-
 We consider the diagonal matrix $D_{\lambda}=diag(\lambda_1,\dots,\lambda_K)$.
-
-\begin{enumerate}
-\item[0.] Initialize parameters $\mu_k^0,\; \Omega_k^0,\;\pi_k^0$ and chose $D_{\lambda}$
-\item Compute (Expectation Step):
-\begin{equation}
-\tau_i^k(t+1)=\frac{\pi_k(t) \varphi_{(\mu_k(t),\Omega_k(t))}(x_i)}{\sum_{k'=1}^K\pi_{k'}(t)\varphi_{(\mu_{k'},\Omega_{k'})}(x_i)}
-\end{equation}
-\item Compute (Maximization Step):\\
-We note:
-\begin{align}
+\begin{figure}[H]
+\begin{center}
+\mybox{
+\begin{minipage}{0.85\linewidth}
+\begin{algorithmic}%[1]\tt
+%\SetLine%\SetAlgoLined
+\small
+\STATE {\bfseries Input:} data vectors $\bx_1,\ldots,\bx_n\in\RR^p$, the number of clusters $K$ and $D_{\lambda}$
+\STATE {\bfseries Output:} parameter estimate $\hat\btheta = \{\hat\bmu_k,\hat\bOmega_k,\pi_k\}_{k\in[K]}$
+\STATE {\tt 1: Initialize $t=0$, $\btheta=\btheta^0$.}
+\STATE {\tt 2: {\bf Repeat}}
+\STATE \qquad {\tt 3: Update the parameter $\bTau$:}
+\begin{align*}
+\tau_{i,k}^{t}  &= \frac{\pi_k^{t}\varphi_{\bmu_k^{t},\bOmega_k^{t}}(\bx_i)}{\sum_{k'\in[K]}\pi^{t}_{k'}\varphi_{\bmu^{t}_{k'},\bOmega^{t}_{k'}}(\bx_i)}.
+\end{align*}
+\STATE \qquad{\tt 4: Update the parameter $\btheta$:}
+\begin{align*}
 (\mu^k,B^k)&\in \argmin_{(\mu,B)\in \RR^p \times \RR^{p\times p},B_{jj}=1}\Big\{\frac{1}{N}\sum_{n=1}^N\tau_n^k(t)||(x_n-\mu)^TB||^2_2+||D_{\lambda}B||_{1,1}\Big\}\\
-\Omega^k_{ii}&=\\
-\Omega^k&=\\
-\pi_k&=
-\end{align}
-\item Check convergence, for instance:\\
-$\max\Big(\|\mu_k(t+1)-\mu_k(t)\|,\|\Omega_k(t+1)-\Omega_k(t)\|,|\pi_k(t+1)-\pi_k(t)|\Big)<\epsilon$
-Otherwise, go back to step 1.
-\end{enumerate}
+\pi_k^{t+1}     &= \\
+\bmu_k^{t+1}    &= \\
+\bOmega_k^{t+1} &
+\end{align*}
+\STATE \qquad {\tt 5: increment $t$: $t=t+1$}.
+\STATE {\tt 6: {\bf Until} stopping rule.}
+\STATE {\tt 7: {\bf Return} $\btheta^{t}$}.
+\end{algorithmic}
+\end{minipage}}
+   \caption{Lasso for Gaussian mixtures}
+   \label{algo:LassoGM}
+\end{center}
+\end{figure}
