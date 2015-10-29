@@ -130,7 +130,7 @@ the cost function (\textit{i.e.}, the log-likelihood) evaluated at these values 
 increasing sequence that converges to a local maximum.
 
 The main idea underlying the EM algorithm is the following representation of the log-likelihood
-of one observation:
+of one observation derived from the log-sum inequality:
 \begin{equation}\label{hint}
 \log\bigg\{{\sum_{k=1}^K\pi_k\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)}\bigg\} =
 \max_{\substack{\btau\in[0,1]^K \\ \btau^\top \b1_K=1}} \sum_{k=1}^K \Big\{\tau_{k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{k} \log(\pi_k/\tau_{k})\Big\}.
@@ -140,7 +140,7 @@ row of $\bTau$ is a probability distribution on $[K]$. Combining \eqref{step:1} 
 \begin{align}\label{eq:3}
 \hat\btheta
     &\in\argmax_{\btheta=(\bpi,\bmu,\bSigma)}\max_{\bTau}
-    \sum_{i=1}^{n} \sum_{k=1}^K \Big\{\tau_{i,k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{i,k}
+    \sum_{i=1}^{N} \sum_{k=1}^K \Big\{\tau_{i,k}\log\varphi_{\bmu_{k},\bSigma_{k}}(\bx_i)+\tau_{i,k}
     \log(\pi_k/\tau_{i,k})\Big\}.
 \end{align}
 The great advantage of this new representation of the log-likelihood function is that the cost
