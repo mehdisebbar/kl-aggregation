@@ -1,0 +1,34 @@
+
+\section{Algorithm 2}
+We consider the diagonal matrix $D_{\lambda}=diag(\lambda_1,\dots,\lambda_K)$.
+\begin{figure}[H]
+\begin{center}
+\mybox{
+\begin{minipage}{0.85\linewidth}
+\begin{algorithmic}%[1]\tt
+%\SetLine%\SetAlgoLined
+\small
+\STATE {\bfseries Input:} data vectors $\bx_1,\ldots,\bx_n\in\RR^p$, the number of clusters $K$ and $D_{\lambda}$
+\STATE {\bfseries Output:} parameter estimate $\hat\btheta = \{\hat\bmu_k,\hat\bOmega_k,\pi_k\}_{k\in[K]}$
+\STATE {\tt 1: Initialize $t=0$, $\btheta=\btheta^0$.}
+\STATE {\tt 2: {\bf Repeat}}
+\STATE \qquad {\tt 3: Update the parameter $\bTau$:}
+\begin{align*}
+\tau_{i,k}^{t}  &= \frac{\pi_k^{t}\varphi_{\bmu_k^{t},\bOmega_k^{t}}(\bx_i)}{\sum_{k'\in[K]}\pi^{t}_{k'}\varphi_{\bmu^{t}_{k'},\bOmega^{t}_{k'}}(\bx_i)}.
+\end{align*}
+\STATE \qquad{\tt 4: Update the parameter $\btheta$:}
+\begin{align*}
+(\mu^k,B^k)&\in \argmin_{(\mu,B)\in \RR^p \times \RR^{p\times p},B_{jj}=1}\Big\{\frac{1}{N}\sum_{n=1}^N\tau_n^k(t)||(x_n-\mu)^TB||^2_2+||D_{\lambda}B||_{1,1}\Big\}\\
+\pi_k^{t+1}     &= \\
+\bmu_k^{t+1}    &= \\
+\bOmega_k^{t+1} &
+\end{align*}
+\STATE \qquad {\tt 5: increment $t$: $t=t+1$}.
+\STATE {\tt 6: {\bf Until} stopping rule.}
+\STATE {\tt 7: {\bf Return} $\btheta^{t}$}.
+\end{algorithmic}
+\end{minipage}}
+   \caption{Lasso for Gaussian mixtures}
+   \label{algo:LassoGM}
+\end{center}
+\end{figure}
