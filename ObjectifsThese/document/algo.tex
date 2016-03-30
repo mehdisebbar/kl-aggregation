@@ -13,18 +13,18 @@ This algorithm is inspired by the EM algorithm. The penalized log-likelihood of 
 	      	\tau_i^k(t+1)=\frac{\pi_k(t) \varphi_{(\mu_k(t),\Omega_k(t))}(x_i)}{\sum_{k'=1}^K\pi_{k'}(t)\varphi_{(\mu_{k'},\Omega_{k'})}(x_i)}
 	      \end{equation}
 
-	\item Compute (Maximization Step):\\
+	\item Compute (Maximization Step):\
 
 	      We note:
-	      \\$\rho^k_i(t+1)=\frac{\tau_i^k(t+1)}{\sum_{j=1}^N\tau_j^k(t+1)}$ and\\
-	      $S_{N,k}=\sum_{i=1}^N \rho^k_i(t+1) (x_i-\mu_k(t+1))(x_i-\mu_k(t+1))^T$\\
+	      \$\rho^k_i(t+1)=\frac{\tau_i^k(t+1)}{\sum_{j=1}^N\tau_j^k(t+1)}$ and\
+	      $S_{N,k}=\sum_{i=1}^N \rho^k_i(t+1) (x_i-\mu_k(t+1))(x_i-\mu_k(t+1))^T$\
 
 	      \begin{align}
-	      	\mu_k(t+1)    & =\sum_{i=1}^N \rho^k_i(t+1) x_i                                                                                                \\
-	      	\Omega_k(t+1) & \in \argmin_{ \Omega\succeq 0} \Big\{ \frac{1}{2}-\log| \Omega |-\frac{1}{2} tr(S_{N,k}\Omega)+\lambda_k||\Omega||_{1,1}\Big\} \\
+	      	\mu_k(t+1)    & =\sum_{i=1}^N \rho^k_i(t+1) x_i                                                                                                \
+	      	\Omega_k(t+1) & \in \argmin_{ \Omega\succeq 0} \Big\{ \frac{1}{2}-\log| \Omega |-\frac{1}{2} tr(S_{N,k}\Omega)+\lambda_k||\Omega||_{1,1}\Big\} \
 	      	\pi_k(t+1)    & =\frac{\sum_{i=1}^N\tau_i^k(t+1)}{N}
 	      \end{align}
-	\item Check convergence, for instance:\\
+	\item Check convergence, for instance:\
 	      $\max\Big(\|\mu_k(t+1)-\mu_k(t)\|,\|\Omega_k(t+1)-\Omega_k(t)\|,|\pi_k(t+1)-\pi_k(t)|\Big)<\epsilon$
 	      Otherwise, go back to step 1.
 \end{enumerate}
@@ -41,15 +41,15 @@ We consider the diagonal matrix $D_{\lambda}=diag(\lambda_1,\dots,\lambda_K)$.
 	      \begin{equation}
 	      	\tau_i^k(t+1)=\frac{\pi_k(t) \varphi_{(\mu_k(t),\Omega_k(t))}(x_i)}{\sum_{k'=1}^K\pi_{k'}(t)\varphi_{(\mu_{k'},\Omega_{k'})}(x_i)}
 	      \end{equation}
-	\item Compute (Maximization Step):\\
+	\item Compute (Maximization Step):\
 	      We note:
 	      \begin{align}
-	      	(\mu^k,B^k)   & \in \argmin_{(\mu,B)\in \RR^p \times \RR^{p\times p},B_{jj}=1}\Big\{\frac{1}{N}\sum_{n=1}^N\tau_n^k(t)||(x_n-\mu)^TB||^2_2+||D_{\lambda}B||_{1,1}\Big\} \\
-	      	\Omega^k_{ii} & =                                                                                                                                                       \\
-	      	\Omega^k      & =                                                                                                                                                       \\
+	      	(\mu^k,B^k)   & \in \argmin_{(\mu,B)\in \RR^p \times \RR^{p\times p},B_{jj}=1}\Big\{\frac{1}{N}\sum_{n=1}^N\tau_n^k(t)||(x_n-\mu)^TB||^2_2+||D_{\lambda}B||_{1,1}\Big\} \
+	      	\Omega^k_{ii} & =                                                                                                                                                       \
+	      	\Omega^k      & =                                                                                                                                                       \
 	      	\pi_k         & =
 	      \end{align}
-	\item Check convergence, for instance:\\
+	\item Check convergence, for instance:\
 	      $\max\Big(\|\mu_k(t+1)-\mu_k(t)\|,\|\Omega_k(t+1)-\Omega_k(t)\|,|\pi_k(t+1)-\pi_k(t)|\Big)<\epsilon$
 	      Otherwise, go back to step 1.
 \end{enumerate}

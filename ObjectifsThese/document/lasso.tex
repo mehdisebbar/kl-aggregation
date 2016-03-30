@@ -1,6 +1,6 @@
 \section{Draft-A structural analysis on $\bSigma$ approach}
 
-We consider a multivariate Gaussian distribution with mean $\bmu^*$ and covariance $\bSigma^*$ and $Y_1,\dots,Y_N \in \RR^p$ iid drawn from this distribution. We would like to estimate $\bmu^*$ and $\bSigma^*$. We know that $\hat\bmu_n=\bar Y_n$, then wlog we consider $\mu^*=0$, the problem is to estimate $\bSigma^*$. We will study the precision matrix and consider that $\Sigma^{-1}$ is sparse. We note $\Sigma^{-1}=\Omega$, $Y_n$ the $n$-th random variable and $Y_n^i$ the $i$-th component of this vector.\\
+We consider a multivariate Gaussian distribution with mean $\bmu^*$ and covariance $\bSigma^*$ and $Y_1,\dots,Y_N \in \RR^p$ iid drawn from this distribution. We would like to estimate $\bmu^*$ and $\bSigma^*$. We know that $\hat\bmu_n=\bar Y_n$, then wlog we consider $\mu^*=0$, the problem is to estimate $\bSigma^*$. We will study the precision matrix and consider that $\Sigma^{-1}$ is sparse. We note $\Sigma^{-1}=\Omega$, $Y_n$ the $n$-th random variable and $Y_n^i$ the $i$-th component of this vector.\
 If $\Sigma^{-1}_{ij}=0 \Rightarrow Y^i \ci Y^j$ conditionally to $Y^{l\ne\{i,j\}}$. Thus, it makes sense to impose a $L_1$ penalty on $\Sigma^{-1}$ to increase its sparsity.
 
 \subsection{Graphical Lasso}
@@ -12,7 +12,7 @@ Let consider a multivariate normal distribution with parameters $\mu^*,\; \Sigma
 We consider $\mu=0$. Given N datapoints $X_1,\dots,X_N$ and $X_i \in \RR^d$, the log-likelihood is given by:
 \begin{equation}
 \begin{split}
-\mathcal{L}(\Sigma)=\log\left(\prod_{n=1}^N\frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}}\exp^{-\frac{1}{2}(x_n)^T\Sigma^{-1}(x_n)}\right)\\
+\mathcal{L}(\Sigma)=\log\left(\prod_{n=1}^N\frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}}\exp^{-\frac{1}{2}(x_n)^T\Sigma^{-1}(x_n)}\right)\
 =-\frac{dN}{2}\log 2\pi - \frac{N}{2}\sum_{n=1}^N\log |\Sigma^*|- \frac{1}{2}\sum_{n=1}^N x_n^T\Sigma^{*,-1}x_n
 \end{split}
 \end{equation}
@@ -33,7 +33,7 @@ Where C is a constant (dependent on N). Thus, considering the sparsity of the pr
 \begin{equation}
 \hat\Omega\in argmin\big\{ \log|\Omega|-tr(S_N\Omega)-\lambda||\Omega||_1   \big\}
 \end{equation}
-A reason to use the $L_1$ penalization instead of the ridge is that for an $L_p$ penalization, the problem is convex for $p\geq 1$ and we have parsimonious property for $p\leq 1$.\\
+A reason to use the $L_1$ penalization instead of the ridge is that for an $L_p$ penalization, the problem is convex for $p\geq 1$ and we have parsimonious property for $p\leq 1$.\
 This is a convex optimization problem, however the complexity is $O(p^3)$ (Source, high dim \& var select Buhlmann 2006 ? Wassermann)
 \subsection{Column-Wise Lasso}
 
@@ -41,55 +41,55 @@ We consider a gaussian vector $Y\in \RR^d$, $Y \sim \mathcal N(0,\Sigma)$. We ca
 \begin{equation}
 \Sigma=
  \begin{pmatrix}
-\sigma_1^2 & \Sigma_{12}\\
+\sigma_1^2 & \Sigma_{12}\
 \Sigma_{12}^T & \Sigma_{22}
 \end{pmatrix}
 \end{equation}
 and according to theorem[?]: If $\Sigma_{22}$ is inversible, then:
 \begin{equation}
 \begin{array}{lcl}
-\EE[Y^1|Y^{2:d}]&=&\Sigma_{12}\Sigma_{22}^{-1}Y^{2:d}\\
+\EE[Y^1|Y^{2:d}]&=&\Sigma_{12}\Sigma_{22}^{-1}Y^{2:d}\
 Var[Y^1|Y^{2:d}]&=&\sigma_1^2-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{12}^T
 \end{array}
 \end{equation}
 We have the following identity:
 \begin{equation}
  \begin{pmatrix}
- \omega_{11}&\Omega_{12}\\
+ \omega_{11}&\Omega_{12}\
  \Omega_{12}^T&\Omega_{22}
 \end{pmatrix}
  \begin{pmatrix}
- \sigma_{1}^2&\Sigma_{12}\\
+ \sigma_{1}^2&\Sigma_{12}\
  \Sigma_{12}^T&\Sigma_{22}
 \end{pmatrix}
 =
  \begin{pmatrix}
- 1&0\\
+ 1&0\
 0&I_{p-1}
 \end{pmatrix}
 \end{equation}
 Which gives the following equations:
 \begin{equation}
   \begin{cases}
-  \omega_{11}\sigma_1^2+\Omega_{12}\Sigma_{12}^T&=1\quad\,\quad(*) \\
-  \omega_{11}\Sigma_{12}+\Omega_{12}\Sigma_{22}&=0\quad\,\quad(**)\\
+  \omega_{11}\sigma_1^2+\Omega_{12}\Sigma_{12}^T&=1\quad\,\quad(*) \
+  \omega_{11}\Sigma_{12}+\Omega_{12}\Sigma_{22}&=0\quad\,\quad(**)\
   \Omega_{12}^T\Sigma_{12}+\Omega_{22}\Sigma_{22}&=I_{p-1}\quad(***)
   \end{cases}
 \end{equation}
 With (**) we have $-\omega_{11}\Sigma_{12}\Sigma_{22}^{-1}=\Omega_{12}$ and injected to (*) we have:
 \begin{equation}
  \begin{cases}
- \EE[Y^1|Y^{2:d}]&=-\frac{1}{\omega_{11}}\Omega_{12}Y^{2:d}\\
+ \EE[Y^1|Y^{2:d}]&=-\frac{1}{\omega_{11}}\Omega_{12}Y^{2:d}\
   Var[Y^1|Y^{2:d}]&=\frac{1}{\omega_{11}}
   \end{cases}
 \end{equation}
-Finally, $Y^1-\EE[Y^1|Y^{2:d}]$ is a gaussian vector of $\RR^{d-1}$, centered, independent of $Y^{2:d}$ and of covariance matrix $\sigma_1^2-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{12}^T$. If we denote  $\xi^1\sim \mathcal N(0,1)$ we have $Y^1-\EE[Y^1|Y^{2:d}]=\frac{1}{ \sqrt{\omega_{11}}}\xi^1$.\\
+Finally, $Y^1-\EE[Y^1|Y^{2:d}]$ is a gaussian vector of $\RR^{d-1}$, centered, independent of $Y^{2:d}$ and of covariance matrix $\sigma_1^2-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{12}^T$. If we denote  $\xi^1\sim \mathcal N(0,1)$ we have $Y^1-\EE[Y^1|Y^{2:d}]=\frac{1}{ \sqrt{\omega_{11}}}\xi^1$.\
 
 Therefore, for $Y_1,\dots,Y_n$ iid of law $\mathcal N(0,\Sigma^*)$ we have:
 
 \begin{equation}
 \begin{array}{lcl}
-  Y_i^1&=&-\frac{1}{\omega_{11}^*}\Omega_{12}Y_i^{2:d}+\frac{1}{\sqrt{\omega_{11}^*}}\xi^1_i\\
+  Y_i^1&=&-\frac{1}{\omega_{11}^*}\Omega_{12}Y_i^{2:d}+\frac{1}{\sqrt{\omega_{11}^*}}\xi^1_i\
   &=&-\sum_{j=2}^{d}\frac{w_{ij}^*}{\omega_{11}^*}Y_i^j+\frac{1}{\sqrt{\omega_{11}^*}}\xi^1_i
 \end{array}
 \end{equation}
@@ -104,14 +104,14 @@ with
 \begin{equation}
 \beta_1^*=\frac{1}{\sqrt{\omega_{11}^*}}
   \begin{bmatrix}
-  w_{11}^*\\
-  w_{12}\\
-  \vdots\\
+  w_{11}^*\
+  w_{12}\
+  \vdots\
   w_{1d}
   \end{bmatrix}
   \in \RR^d
   \quad \text{and}\quad \bY= \begin{bmatrix}
-  verifier\\
+  verifier\
   \end{bmatrix}
 \end{equation}
 \subsection{The Square-Root Lasso}

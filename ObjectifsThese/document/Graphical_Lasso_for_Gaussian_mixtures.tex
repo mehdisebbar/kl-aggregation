@@ -1,13 +1,13 @@
 \section{Graphical Lasso for Gaussian mixtures}
 
-The EM algorithm experiences severe performance degradation in high-dimensional setting. A technique to avoid this degradation is by regularizing the parameters of the model. The following algorithm is inspired by the Graphical lasso \citep{glasso07} \citep{banerjee} which penalizes the components of the precision matrix of a Gaussian graphical model.\\
+The EM algorithm experiences severe performance degradation in high-dimensional setting. A technique to avoid this degradation is by regularizing the parameters of the model. The following algorithm is inspired by the Graphical lasso \citep{glasso07} \citep{banerjee} which penalizes the components of the precision matrix of a Gaussian graphical model.\
 
 We consider $\bx_1,\bx_2,\dots,\bx_n$ a sample of $n$ points drawn from a $p$-dimensional Gaussian mixture distribution. In this problem, we will consider the estimation of $\btheta=(\theta_1,\dots,\theta_K)$ with $\theta_k=(\pi_k, \bmu_k, \bOmega_k)$ where $\bOmega_k$ is the precision matrix regarding the $k$ component of the mixture. We denote $\varphi_{(\bmu_{k},\bOmega_{k})}$ the gaussian density of mean $\bmu_k$ and precision matrix $\bOmega_k$. The penalized log-likelihood is
 \begin{equation}\label{pen-log-likelihood}
 \ell_n^{pen}(\btheta)=\sum_{i=1}^{n}\log p_{\btheta}(\bx_i)-pen(\btheta)= \sum_{i=1}^{n}\log \bigg\{ \sum_{k=1}^K\pi_k\varphi_{(\bmu_{k},\bOmega_{k})}(\bx_i)\bigg\} -pen(\btheta).
 \end{equation}
 In this problem, we suppose that within a cluster $k$, most pairs of features $(X^i,X^j)$ are independent given the other features $X^l \text{ with } i,j,l\in[p], l\notin\{i,j \}$. This property entails the sparsity of $\bOmega_k$. 
-Therefore, we consider an $l_1$ regularization $pen(\theta_k)=\lambda_k||\bOmega_k||_{1,1}$ with $\lambda_k>0$.\\
+Therefore, we consider an $l_1$ regularization $pen(\theta_k)=\lambda_k||\bOmega_k||_{1,1}$ with $\lambda_k>0$.\
 
 The penalization of the log-likelihood concerns only the precision matrices $\bOmega_k$. Regarding the other parameters $(\pi_k, \bmu_k)$, our algorithm is the same as EM and we can use the same iteration technique as in lemma \ref{lemma1} to maximize the following cost function
 \begin{equation}
@@ -44,9 +44,9 @@ The Gaussian density in equation \eqref{cost_fun_pen} can be expanded as follows
 \begin{align*}
 \label{cost_fun_pen_2}
 F^{pen}(\btheta,\bTau)  =& \sum_{k=1}^K \bigg( \sum_{i=1}^{n}\Big\{ \tau_{i,k} \Big(
--\frac{p}{2}\log(2\pi)+\frac{1}{2}\log|\bOmega_k|\\
-&-\frac{1}{2}(\bx_i-\bmu_k)^T\bOmega_k(\bx_i-\bmu_k) \Big)+\tau_{i,k} \log(\pi_k/\tau_{i,k})\Big\} -\lambda_k||\bOmega_k||_{1,1}\bigg)\\
-=& -\frac{np}{2}\log(2\pi)+\sum_{k=1}^K \bigg(\frac{n\pi_k}{2}\log|\bOmega_k|\\
+-\frac{p}{2}\log(2\pi)+\frac{1}{2}\log|\bOmega_k|\
+&-\frac{1}{2}(\bx_i-\bmu_k)^T\bOmega_k(\bx_i-\bmu_k) \Big)+\tau_{i,k} \log(\pi_k/\tau_{i,k})\Big\} -\lambda_k||\bOmega_k||_{1,1}\bigg)\
+=& -\frac{np}{2}\log(2\pi)+\sum_{k=1}^K \bigg(\frac{n\pi_k}{2}\log|\bOmega_k|\
 &+\sum_{i=1}^{n}\Big\{ -\frac{\tau_{i,k}}{2}(\bx_i-\bmu_k)^T\bOmega_k(\bx_i-\bmu_k)+\tau_{i,k} \log(\pi_k/\tau_{i,k})\Big\} -\lambda_k||\bOmega_k||_{1,1}\bigg) 
 \end{align*}
 
@@ -59,7 +59,7 @@ Using the well-known commutativity property of the trace operator and dividing b
 \bOmega_k \in \argmin_{ \bOmega\succeq 0} \Big\{ -\frac{1}{2}\log|\bOmega| +\frac{1}{2} tr(\bSigma_{n,k}\bOmega)+\frac{\lambda_k}{n\pi_k}||\bOmega||_{1,1}\Big\}
 \end{equation}
 
-Our algorithm solves a graphical lasso problem within each cluster. We use a block coordinate ascent algorithm \citep{mazum_lasso} to solve this convex problem as in the graphical lasso implementation in R \url{http://statweb.stanford.edu/~tibs/glasso/} \\
+Our algorithm solves a graphical lasso problem within each cluster. We use a block coordinate ascent algorithm \citep{mazum_lasso} to solve this convex problem as in the graphical lasso implementation in R \url{http://statweb.stanford.edu/~tibs/glasso/} \
 
 
 The alternating maximization procedure is summarized in the following algorithm.
@@ -81,9 +81,9 @@ The alternating maximization procedure is summarized in the following algorithm.
 \end{align*}
 \STATE {\tt 4: \qquad Update the parameter $\btheta$:}
 \begin{align*}
-\pi_k^{t+1}     &= \frac1n\sum_{i=1}^n \tau_{i,k}^t,\qquad \\
-\bmu_k^{t+1}    &= \frac1{n\pi_k^{t+1}}\sum_{i=1}^n \tau_{i,k}^t\bx_i\\
-\bSigma_{n,k}         &= \frac{1}{n^2\pi_k^{t+1}}\sum_{i=1}^n\tau_{i,k}^{t+1}(\bx_i-\hat\bmu_k^{t+1})(\bx_i-\hat\bmu_k^{t+1})^\top\\
+\pi_k^{t+1}     &= \frac1n\sum_{i=1}^n \tau_{i,k}^t,\qquad \
+\bmu_k^{t+1}    &= \frac1{n\pi_k^{t+1}}\sum_{i=1}^n \tau_{i,k}^t\bx_i\
+\bSigma_{n,k}         &= \frac{1}{n^2\pi_k^{t+1}}\sum_{i=1}^n\tau_{i,k}^{t+1}(\bx_i-\hat\bmu_k^{t+1})(\bx_i-\hat\bmu_k^{t+1})^\top\
 \bOmega_k^{t+1} & \in \argmin_{ \bOmega\succeq 0} \Big\{ -\frac{1}{2}\log| \bOmega |+\frac{1}{2} tr(\bSigma_{N,k}\bOmega)+\frac{\lambda_k}{n\pi_k^{t+1}}||\bOmega||_{1,1}\Big\}
 \end{align*}
 \STATE {\tt 5: \qquad increment $t$: $t=t+1$}.
