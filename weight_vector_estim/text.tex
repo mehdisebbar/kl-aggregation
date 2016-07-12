@@ -1,0 +1,191 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsopn}
+\usepackage{graphicx}
+\usepackage{mathrsfs}
+\usepackage{empheq}
+
+%\usepackage{psfrag}
+\usepackage{float}
+\usepackage{amsfonts}
+%\usepackage{epstopdf}
+\usepackage{dsfont}
+%\usepackage{xcolor,fancybox}
+\usepackage{url}
+\usepackage{pifont}
+
+% For algorithms
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{caption}
+% Need it for \caption*
+\usepackage{xspace}
+% Fix macro spacing bug
+
+\usepackage{tcolorbox}
+\definecolor{mycolor}{rgb}{0.122, 0.435, 0.698}
+
+\newtcbox{\mybox}{nobeforeafter,colframe=mycolor,colback=mycolor!10!white,boxrule=0.5pt,arc=4pt,
+  boxsep=0pt,left=6pt,right=6pt,top=6pt,bottom=6pt,tcbox raise base}
+
+\usepackage{tikz}
+\usetikzlibrary{fit,positioning}
+\usetikzlibrary{arrows}
+
+
+%\usepackage{showkeys}
+
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+\bibpunct{(}{)}{;}{a}{,}{,}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks = true,
+  urlcolor = blue,
+  linkcolor = blue,
+  citecolor = blue,
+}
+
+% Packages hyperref and algorithmic misbehave sometimes.  We can fix
+% this with the following command.
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+
+\usepackage{geometry}
+\geometry{a4paper, left=30mm, right=30mm, top=30mm, bottom=30mm, nohead}
+
+
+
+
+%\setlength{\arraycolsep}{2pt}
+%\setlength{\parskip}{.04in}
+%\setlength{\footskip}{30pt}
+
+\let\bb\mathbb       % BlackBoardBold (double letters)
+
+
+  \def\AA{{\bb A}}\def\CC{{\bb C}}\def\DD{{\bb D}}\def\EE{{\bb E}}
+  \def\GG{{\bb G}}\def\HH{{\bb H}}\def\KK{{\bb K}}\def\LL{{\bb L}}
+  \def\MM{{\bb M}}\def\QQ{{\bb Q}}\def\TT{{\bb T}}\def\YY{{\bb Y}}
+  \def\PP{{\bb P}}\def\II{{\bb I}}\def\WW{{\bb W}}\def\XX{{\bb X}}
+  \def\VV{{\bb V}}\def\SS{{\bb S}}\def\BB{{\bb B}}\def\NN{{\bb N}}
+  \def\RR{{\bb R}}\def\ZZ{{\bb Z}}\def\FF{{\bb F}}\def\DD{{\bb D}}
+  \def\OO{{\bb O}}\def\JJ{{\bb J}}\def\UU{{\bb U}}
+
+\def\cH{\mathcal H}
+\def\cY{\mathcal Y}
+\def\cX{\mathcal X}
+\def\cA{\mathcal A}
+\def\mC{\mathcal C}
+\def\Ex{\mathbf E}
+
+\def\bb{\mathbb}
+%end of header
+\def\hat{\widehat}
+\def\bfX{\mathbf X}
+\def\bfB{\mathbf B}
+\def\bfA{\mathbf A}
+\def\bSigma{\boldsymbol\Sigma}
+\def\bOmega{\boldsymbol\Omega}
+\def\bmu{\boldsymbol\mu}
+\def\bnu{\boldsymbol\nu}
+\def\btau{\boldsymbol\tau}
+\def\bTau{\boldsymbol{\mathcal T}}
+\def\btheta{{\boldsymbol\theta}}
+\def\bTheta{{\boldsymbol\Theta}}
+\def\bPi{\boldsymbol\Pi}
+\def\bX{\boldsymbol X\!}
+\def\bx{\boldsymbol x}
+\def\bS{\boldsymbol S}
+\def\bbeta{\boldsymbol \beta}
+\def\bY{\boldsymbol Y}
+\def\bxi{\boldsymbol \xi}
+\def\bpi{\boldsymbol \pi}
+\def\ci{\perp\!\!\!\perp}
+\def\bZ{\boldsymbol Z}
+\def\11{\mathds 1}
+\def\b1{\mathbf 1}
+\def\Pb{\mathbf P}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand*{\pd}[3][]{\ensuremath{\frac{d^{#1} #2}{d#3^{#1}}}}
+
+
+\parindent=0pt
+\parskip=5pt
+\renewcommand{\baselinestretch}{1.08}
+
+
+\newtheorem{rem}{Remark}
+\newtheorem{defi}{Definition}
+\newtheorem{lem}{Lemma}
+\newtheorem{cor}{Corollary}
+\newtheorem{pro}{Proposition}
+\newtheorem{theo}{Theorem}
+\newtheorem{fact}{Fact}
+\newtheorem{hyp}{Hypothesis} 
+
+% Number lines
+\usepackage{lineno,xcolor}
+\linenumbers
+\setlength\linenumbersep{5pt}
+\renewcommand\linenumberfont{\normalfont\tiny\sffamily\color{gray}}
+
+\begin{document}
+
+Let consider a general mixture model. We suppose that each component is known. We will focus on the estimation on the weights $\bpi\in\RR^K$ vector. We observe $N$ random variables $X_1,X_2,\dots,X_N$ drawn from the density $f_{\bpi}$:
+\begin{equation}
+f_{\bpi}(x)=\sum_{j=1}^K\bpi_jf_j(x)
+\end{equation}
+Each component density $f_i$ are known, not necessarily Gaussian. We assume that the weight vector $\bpi$ is sparse. We will focus on the Maximum Likelihhod Estimator's performance and it's asymptotical behaviour regarding the risk. We define $\Phi_N(\bpi)$ as:
+\begin{equation}
+  \Phi_N(\bpi) = -\frac{1}{N}\sum_{i=1}^N\log f_{\bpi}(x_i)
+\end{equation}
+We can rewrite the minimization problem:
+\begin{equation}
+\hat\bpi \in \argmin_{\bpi\in\Pi}\big\{\Phi_N(\bpi)\big\},\quad \Pi = \big\{\bpi\in [0,1]^K: \sum_{j=1}^K\pi_j=1\big\}
+\end{equation}
+For theoretical objectives, we will make the following asumption:
+\begin{hyp}
+\label{hyp_obs_likely}
+All realizations are not probably unlikely to be observed. Therefore $f_{\bpi}(x)\geq m > 0$ for all $x\in\{x_1,\dots,x_N\}$.
+\end{hyp}
+Let denote $M=max_{x\in{x_1,\dots,x_N},j\in[K]}\{f_j(x)\}$, since $\bpi^T\b1=1$ then $f_{\bpi}\leq M$. Therefore, $\forall \bpi \in \Pi, f_{\bpi}({x_1,\dots,x_N}) \in [m,M]$. We have the following lemma:
+\begin{lem}
+Under hypothesis \ref{hyp_obs_likely}, $\Phi_N$ is Lipschitz-smooth and strongly convex.
+\begin{proof}
+$\forall i\in[K], g_{x_i}(\bpi)=f_{\bpi}(x_i)$ is a linear function defined on $\Pi$ and it's image is the interval $[m,M]$ where $m>0$.  We will prove that $-log$ is strongly convex on $[m,M]$.
+\begin{equation}
+\forall x \in [m,M], \frac{1}{M^2}\leq\pd[2]{(-log)}{x}(x)=\frac{1}{x^2}\leq \frac{1}{m^2}
+\end{equation}
+The first inequality proves the $1/M^2$ strong convexity of $-log$, the second proves that it is $1/m^2$ Lipschitz smooth. The sum of strongly convex functions is strongly convex. Therefore, $\Phi_N$ is strongly convex.
+\end{proof}
+\end{lem}
+The minimization problem can be rewritten as following:
+\begin{equation}
+\hat\bpi \in \argmin_{\bpi\in\Pi}\big\{\Phi_N(\bpi)\big\},\quad 
+\Pi = \big\{\bpi\in [0,1]^K: \bpi^T\b1=1, 
+\forall i\in [N],\sum_{j=1}^K\pi_j f_j(x_i)\geq m
+\big\}
+\end{equation}
+We will study different loss function for the risk: $||\hat\bpi-\bpi^*||_1$, $||\hat\bpi-\bpi^*||_2$ and $dist(f_{\hat\bpi},f_{\bpi^*})$\\
+This problem is close to the regression with random design since we can consider $\Phi_N$ as a function fo two random variable $X_i$ and $\bpi$:
+\begin{equation}
+  \Phi_N(\bpi) = \frac{1}{N}\sum_{i=1}^N\varphi(x_i,\bpi)
+\end{equation}
+In this setting $\varphi(.,.)$ is strongly convex and Lipschitz smooth regarding the second variable
+\end{document}
+
+
+
+
+
+
+
+
