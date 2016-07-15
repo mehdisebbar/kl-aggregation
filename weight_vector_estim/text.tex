@@ -91,6 +91,8 @@
 \def\bfB{\mathbf B}
 \def\bfA{\mathbf A}
 \def\bSigma{\boldsymbol\Sigma}
+\def\bsigma{\boldsymbol\sigma}
+
 \def\bOmega{\boldsymbol\Omega}
 \def\bmu{\boldsymbol\mu}
 \def\bnu{\boldsymbol\nu}
@@ -139,11 +141,12 @@
 
 \begin{document}
 
-Let consider a general mixture model. We suppose that each component is known. We will focus on the estimation on the weights $\bpi\in\RR^K$ vector. We observe $N$ random variables $X_1,X_2,\dots,X_N$ drawn from the density $f_{\bpi}$:
+Let consider a general mixture model. We observe $N$ random variables
+$x_1, x_2,...,x_N$ which are independently and identically distributed with $x_i\sim f_{\bpi}(x_i)$ where $f_{\bpi}$ is given by:
 \begin{equation}
 f_{\bpi}(x)=\sum_{j=1}^K\bpi_jf_j(x)
 \end{equation}
-Each component density $f_i$ are known, not necessarily Gaussian. We assume that the weight vector $\bpi$ is sparse. We will focus on the Maximum Likelihhod Estimator's performance and it's asymptotical behaviour regarding the risk. We define $\Phi_N(\bpi)$ as:
+Let suppose that each component density $f_i$ is known, but not necessarily Gaussian. We will focus on the estimation of the weights vector $\bpi\in\RR^K$ and assume that this vector is sparse. We will focus our study on the performance of the Maximum Likelihood Estimator (et excess risk ?). From a rewriting of the loglikelihood we can define $\Phi_N(\bpi)$ as following:
 \begin{equation}
   \Phi_N(\bpi) = -\frac{1}{N}\sum_{i=1}^N\log f_{\bpi}(x_i)
 \end{equation}
@@ -154,32 +157,44 @@ We can rewrite the minimization problem:
 For theoretical objectives, we will make the following asumption:
 \begin{hyp}
 \label{hyp_obs_likely}
-All realizations are not probably unlikely to be observed. Therefore $f_{\bpi}(x)\geq m > 0$ for all $x\in\{x_1,\dots,x_N\}$.
+All realizations are not probably unlikely to be observed. Therefore $\exists m>0 \text{ such that } f_{\bpi}(x)\geq m$ for all $x\in\{x_1,\dots,x_N\}$.
 \end{hyp}
-Let denote $M=max_{x\in{x_1,\dots,x_N},j\in[K]}\{f_j(x)\}$, since $\bpi^T\b1=1$ then $f_{\bpi}\leq M$. Therefore, $\forall \bpi \in \Pi, f_{\bpi}({x_1,\dots,x_N}) \in [m,M]$. We have the following lemma:
+Let denote $\displaystyle M= \max_{x\in \{x_1,\dots,x_N\}, j\in[K]}\{f_j(x)\}$, since $\bpi^T\b1= 1$ then $f_{\bpi}\leq M$. Therefore, $\forall \bpi \in \Pi, f_{\bpi}({x_1,\dots,x_N}) \in [m,M]$. We have the following lemma:
 \begin{lem}
 Under hypothesis \ref{hyp_obs_likely}, $\Phi_N$ is Lipschitz-smooth and strongly convex.
 \begin{proof}
-$\forall i\in[K], g_{x_i}(\bpi)=f_{\bpi}(x_i)$ is a linear function defined on $\Pi$ and it's image is the interval $[m,M]$ where $m>0$.  We will prove that $-log$ is strongly convex on $[m,M]$.
+For each $ i\in[K], g_{x_i}(\bpi)= f_{\bpi}(x_i)$ is a linear function defined on the convex compact set $\Pi$ and it's image is the interval $[m,M]$ where $m>0$.  We will prove that $-\log$ is strongly convex on $[m,M]$.
 \begin{equation}
-\forall x \in [m,M], \frac{1}{M^2}\leq\pd[2]{(-log)}{x}(x)=\frac{1}{x^2}\leq \frac{1}{m^2}
+\forall x \in [m,M], \frac{1}{M^2}\leq\pd[2]{(-\log)}{x}(x)= \frac{1}{x^2}\leq \frac{1}{m^2}.
 \end{equation}
-The first inequality proves the $1/M^2$ strong convexity of $-log$, the second proves that it is $1/m^2$ Lipschitz smooth. The sum of strongly convex functions is strongly convex. Therefore, $\Phi_N$ is strongly convex.
+The first inequality proves the $1/M^2$-strong convexity of $-\log$, the second proves that it is $1/m^2$-Lipschitz smooth. The sum of strongly convex functions is strongly convex. Therefore, $\Phi_N$ is strongly convex.
 \end{proof}
 \end{lem}
-The minimization problem can be rewritten as following:
+With these nice property under assumption \ref{hyp_obs_likely}, the minimization problem can be rewritten as follows:
 \begin{equation}
+\label{min_prob}
 \hat\bpi \in \argmin_{\bpi\in\Pi}\big\{\Phi_N(\bpi)\big\},\quad 
 \Pi = \big\{\bpi\in [0,1]^K: \bpi^T\b1=1, 
 \forall i\in [N],\sum_{j=1}^K\pi_j f_j(x_i)\geq m
 \big\}
 \end{equation}
-We will study different loss function for the risk: $||\hat\bpi-\bpi^*||_1$, $||\hat\bpi-\bpi^*||_2$ and $dist(f_{\hat\bpi},f_{\bpi^*})$\\
-This problem is close to the regression with random design since we can consider $\Phi_N$ as a function fo two random variable $X_i$ and $\bpi$:
+In this work, we will study different loss function: $||\hat\bpi-\bpi^*||_1$, $||\hat\bpi-\bpi^*||_2$ and some $dist(f_{\hat\bpi},f_{\bpi^*})$ (donner un example). It turns out that this problem is close to the regression with random design in the context of transductive learning \cite{bellec2016} since we do not observe the true cluster labels in our problem. We can consider $\Phi_N$ as a function of two random variable $X_i$ and $\bpi$:
 \begin{equation}
   \Phi_N(\bpi) = \frac{1}{N}\sum_{i=1}^N\varphi(x_i,\bpi)
 \end{equation}
-In this setting $\varphi(.,.)$ is strongly convex and Lipschitz smooth regarding the second variable
+In this setting $\varphi(.,.)$ (in our problem it is $-log(f_.(.))$) is strongly convex and Lipschitz smooth. We will recall some interesting results for our work on regression with random design.\\
+
+Let consider the following trace regression model :
+\begin{equation}
+Y_i = tr(X_i^T\bfB^*) + \xi_i \quad i=1,\dots,N
+\end{equation}
+with $B^*\in\RR^{pxq}$ and let assume that $rank(B^*)$ is small. Let denote $\bsigma=[\sigma_1,\dots,\sigma_p]$ the singular values of $B^*$. The rank of this matrix is given by $||\sigma||_0$. Unfortunately, the $L_0$ norm is not convex, we tackle this problem by considering the convex $L_1$ norm $||\bsigma||_1$. Assume the constraint $\bsigma^T\b1=1$, then according to \cite{Koltchinskii2016} (quel theoreme ?) an empirical risk minimization method or a Maximum Likelihood Estimator with this constraint leads to a sparse estimator $\hat \bfB$.\\
+
+Therefore, it might be interesting to compare this result with our problem \ref{min_prob}
+
+\bibliographystyle{plain}
+\bibliography{ref}
+
 \end{document}
 
 
