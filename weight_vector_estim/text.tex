@@ -192,6 +192,46 @@ with $B^*\in\RR^{pxq}$ and let assume that $rank(B^*)$ is small. Let denote $\bs
 
 Therefore, it might be interesting to compare this result with our problem \ref{min_prob}
 
+\section{Error Bound}
+Using the strong convexity property, we have:
+\begin{equation}
+    \big(\nabla \Phi_n(\pi^*)-\nabla \Phi_n(\hat\pi)\big)^T(\pi^*-\hat\pi)\geq \frac{1}{M^2}||\pi^*-\hat\pi||^2
+\end{equation}
+By definition of the estimator $\hat\pi$ we have $\nabla \Phi_n(\hat\pi)=0$ therefore, we develop $\nabla \Phi_n(\pi^*)^T(\pi^*-\hat\pi)$; for $l \in [K]$:
+\begin{equation}
+    [\nabla \Phi_n(\pi^*)]_l=-\frac{1}{N}\sum_{i=1}^N\frac{f_l(x_i)}{\sum_{j=1}^K \pi_j^*f_j(x_i)}
+\end{equation}
+Therefore:
+
+\begin{align}
+    \nabla \Phi_n(\pi^*)^T(\pi^*-\hat\pi)&=-\frac{1}{N}\sum_{l=1}^K\sum_{i=1}^N\frac{f_l(x_i)(\pi_l^*-\hat\pi_l)}{\sum_{j=1}^K\pi_j^*f_j(x_i)}\\
+    &=-\frac{1}{N}\sum_{i=1}^N\Big(\frac{\sum_{l=1}^K\pi_l^*f_l(x_i)}{\sum_{j=1}^K\pi_j^*f_j(x_i)}-\frac{\sum_{l=1}^K\hat\pi_l f_l(x_i)}{\sum_{j=1}^K\pi_j^*f_j(x_i)}\Big)\\
+    &=\frac{1}{N}\sum_{i=1}^N\Big( \frac{f_{\hat\pi}(x_i)}{f_{\pi^*}(x_i)} -1 \Big) = \frac{1}{N}\sum_{i=1}^N Z_i
+\end{align}
+The idea is to use the Bernstein inequality, $Z_1,...,Z_N$ are independent real-valued random variables, we need to prove that there exist a constant b such that $\EE[Z_i^2]\leq \infty$ and $|Z_i-\EE{Z_i}|\leq b$.
+\begin{equation}
+    \EE[Z_i^2]=\EE\Big[\frac{f_{\hat\pi^2}}{f_{\pi^*}^2}-2\frac{f_{\hat\pi}}{f_{\pi^*}}+1\Big]
+    =\EE\Big[\frac{f_{\hat\pi^2}}{f_{\pi^*}^2}\Big]-1
+\end{equation}
+\textbf{Note:} On l'assume pour l'instant, c'est surement le cas si le support de $\hat\pi$ est inclu dans celui de $\pi^*$, en effet, soit $\hat S$ le support de $\hat \pi$ et $S^*$ le support de $\pi^*$, alors, pour tout $x\in \RR^p$ on note $q=\argmax_{l\in \hat S}f_l(x)$ et donc 
+\begin{equation}
+    \frac{\sum_{l\in\hat S} \hat\pi_l f_l(x)}{\sum_{l\in S^*} \pi_l^* f_l(x)}\leq \frac{f_q(x)}{\pi_q^* f_q(x)}=\frac{1}{\pi_q^*}
+\end{equation}
+donc 
+\begin{equation}
+    \EE\Big[\frac{f_{\hat\pi}^2}{f_{\pi^*}^2}\Big]=\int_{\RR^p}\frac{f_{\hat\pi}(x)^2}{f_{\pi^*}(x)^2}f_{\pi^*}(x)dx\leq \max_{l \in \hat S}(\pi_l^*})^{-2}
+\end{equation}
+il faut donc etudier le support de l'estimateur
+
+We can use now the Bernstein inequality (à completer):
+\begin{equation}
+    |\overline Z_N - \EE[\overline Z_N]|\leq \sigma_N \Big(\frac{2 \log(2/\delta)}{N}\Big)^{1/2}\Big[ 1+\frac{b}{6N\sigma_N}\Big(\frac{2 \log(2/\delta)}{N}\Big)^{1/2}   \Big]
+\end{equation}
+Since $\EE[Z_i]=0$, we have:
+\begin{equation}
+    ||\pi^*-\hat\pi||^2 \leq M^2 \sigma_N \Big(\frac{2 \log(2/\delta)}{N}\Big)^{1/2}\Big[ 1+\frac{b}{6N\sigma_N}\Big(\frac{2 \log(2/\delta)}{N}\Big)^{1/2}   \Big]
+\end{equation}
+
 \bibliographystyle{plain}
 \bibliography{ref}
 
