@@ -5,7 +5,7 @@ from random import sample
 
 def generate_grid(grid_length, dim):
     # generate a grid of points in the cube [-1,1]^dim
-    return np.vstack(np.meshgrid(*[np.linspace(-1, 1, grid_length) for _ in range(dim)])).reshape(dim, -1).T
+    return np.vstack(np.meshgrid(*[np.linspace(0, 1, grid_length) for _ in range(dim)])).reshape(dim, -1).T
 
 def check_grid_size(K, dim):
     # We make sure that K fills a cube, otherwise, we increase it
@@ -17,7 +17,7 @@ def check_grid_size(K, dim):
     return int(K), int(grid_length)
 
 def generate_densities(dim, var, grid_length):
-    # We generate a disctionary of densities  at each point of the cube [-1,1]^dim
+    # We generate a dictionary of densities  at each point of the cube [-1,1]^dim
     # We want a cubic grid
     nodes = generate_grid(grid_length, dim)
     densities = [multivariate_normal(m, var * np.identity(dim)) for m in nodes]
