@@ -1,0 +1,51 @@
+This is BibTeX, Version 0.99d (TeX Live 2016)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: algorithm_simulations.aux
+The style file: plainnat.bst
+Illegal, another \bibstyle command---line 22 of file algorithm_simulations.aux
+ : \bibstyle
+ :          {plain}
+I'm skipping whatever remains of this command
+Database file #1: ref.bib
+You've used 2 entries,
+            2773 wiz_defined-function locations,
+            608 strings with 5156 characters,
+and the built_in function-call counts, 1095 in all, are:
+= -- 95
+> -- 69
+< -- 0
++ -- 23
+- -- 21
+* -- 104
+:= -- 173
+add.period$ -- 6
+call.type$ -- 2
+change.case$ -- 13
+chr.to.int$ -- 2
+cite$ -- 4
+duplicate$ -- 42
+empty$ -- 83
+format.name$ -- 23
+if$ -- 218
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 2
+newline$ -- 18
+num.names$ -- 8
+pop$ -- 22
+preamble$ -- 1
+purify$ -- 11
+quote$ -- 0
+skip$ -- 32
+stack$ -- 0
+substring$ -- 54
+swap$ -- 2
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 22
+warning$ -- 0
+while$ -- 10
+width$ -- 0
+write$ -- 33
+(There was 1 error message)
