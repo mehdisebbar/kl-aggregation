@@ -40,7 +40,7 @@ def normalize_density(f_pdf):
     #return a normalized vector such that the integral is 1
     return f_pdf/simps(f_pdf, np.linspace(0, 1, N_PDF))
 
-def simu_block(X, densities):
+def simu_block(X, densities, cl, adapt_dantzig):
     cl.fit(X)
     estim_weighted_densities=cl.select_densities()
     #dantzig estimator
@@ -63,7 +63,7 @@ def simu(K, N):
     print "uniform"
     uniform_X, uniform_f_star = dg.generate_uniform(n_points=N)
     uniform_f_star = normalize_density(uniform_f_star)
-    uniform_estim_weighted_densities, uniform_lambda_dantzig, uniform_kde_pdf_hsj, uniform_kde_pdf = simu_block(uniform_X, densities)   
+    uniform_estim_weighted_densities, uniform_lambda_dantzig, uniform_kde_pdf_hsj, uniform_kde_pdf = simu_block(uniform_X, densities, cl, adapt_dantzig)   
 
     ###############
     #rect case:#
@@ -71,7 +71,7 @@ def simu(K, N):
     print "rect"
     rect_X, rect_f_star = dg.generate_rect(N, dist_rect)
     rect_f_star = normalize_density(rect_f_star)
-    rect_estim_weighted_densities, rect_lambda_dantzig, rect_kde_pdf_hsj, rect_kde_pdf = simu_block(rect_X, densities)
+    rect_estim_weighted_densities, rect_lambda_dantzig, rect_kde_pdf_hsj, rect_kde_pdf = simu_block(rect_X, densities, cl, adapt_dantzig)
 
     ###############
     #f* 5 gaussians, same weights
@@ -84,7 +84,7 @@ def simu(K, N):
         selected_densities_gauss.append(multivariate_normal(m, var))
     gauss_X, gauss_f_star, gauss_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_gauss, selected_densities=range(5))
     gauss_f_star = normalize_density(gauss_f_star)
-    gauss_estim_weighted_densities, gauss_lambda_dantzig, gauss_kde_pdf_hsj, gauss_kde_pdf = simu_block(gauss_X, densities)
+    gauss_estim_weighted_densities, gauss_lambda_dantzig, gauss_kde_pdf_hsj, gauss_kde_pdf = simu_block(gauss_X, densities, cl, adapt_dantzig)
 
     ###############
     #f* mix gaussian/laplace in dict
@@ -98,7 +98,7 @@ def simu(K, N):
     selected_densities_lapl_gauss.append(laplace(0.8,0.1))
     lapl_gauss_X, lapl_gauss_f_star, lapl_gauss_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_lapl_gauss, selected_densities=range(5))
     lapl_gauss_f_star = normalize_density(lapl_gauss_f_star)
-    lapl_gauss_estim_weighted_densities, lapl_gauss_lambda_dantzig, lapl_gauss_kde_pdf_hsj, lapl_gauss_kde_pdf = simu_block(lapl_gauss_X, densities)
+    lapl_gauss_estim_weighted_densities, lapl_gauss_lambda_dantzig, lapl_gauss_kde_pdf_hsj, lapl_gauss_kde_pdf = simu_block(lapl_gauss_X, densities, cl, adapt_dantzig)
     
     ###############
     #f* Another with densities not in dict
@@ -114,7 +114,7 @@ def simu(K, N):
     selected_densities_lapl_gauss_not_dict.append(laplace(0.7, 0.1))
     lapl_gauss_not_dict_X, lapl_gauss_not_dict_f_star, lapl_gauss_not_dict_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_lapl_gauss_not_dict, selected_densities=range(7))
     lapl_gauss_not_dict_f_star = normalize_density(lapl_gauss_not_dict_f_star)
-    lapl_gauss_not_dict_estim_weighted_densities, lapl_gauss_not_dict_lambda_dantzig, lapl_gauss_not_dict_kde_pdf_hsj, lapl_gauss_not_dict_kde_pdf = simu_block(lapl_gauss_not_dict_X, densities)
+    lapl_gauss_not_dict_estim_weighted_densities, lapl_gauss_not_dict_lambda_dantzig, lapl_gauss_not_dict_kde_pdf_hsj, lapl_gauss_not_dict_kde_pdf = simu_block(lapl_gauss_not_dict_X, densities, cl, adapt_dantzig)
 
     pickle.dump({"uniform_data": uniform_X,
                  "uniform_weight_vector_estim_lambda":uniform_estim_weighted_densities,
@@ -179,9 +179,8 @@ if __name__ == "__main__":
             densities.append(laplace(loc=m, scale=scale))
 
     for N in [100]:
-        #p = Pool(processes=9) 
-        #for _ in range(3):
-        #    p.apply_async(simu, args=(0, N))
-        #p.close()
-        #p.join()
-        simu(0, N)
+        p = Pool(processes=9) 
+        for _ in range(100):
+            p.apply_async(simu, args=(0, N))
+        p.close()
+        p.join()        

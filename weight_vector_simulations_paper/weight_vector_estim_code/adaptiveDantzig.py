@@ -2,7 +2,7 @@ from sklearn.base import BaseEstimator
 import numpy as np
 from numba import jit
 from cvxpy import *
-from scipy.integrate import quad
+from scipy.integrate import quad, simps
 from time import time
 
 class AdaptiveDantzigEstimator(BaseEstimator):
@@ -60,18 +60,28 @@ class AdaptiveDantzigEstimator(BaseEstimator):
     def eta_gamma_gen(self):
         return np.array([self.eta_gamma_m(m) for m in range(self.K)])
 
-    #@jit()
+    @jit
     def couple_dens(self, x,i,j):
         return self.densities[i].pdf(x)*self.densities[j].pdf(x)
     
-    #@jit
-    def gram_matrix_gen(self):
+    @jit
+    def gram_matrix_gen_quad(self):
         G = np.zeros([self.K, self.K])
         for i in range(self.K):
-            for j in range(self.K):
+            for j in range(i+1):
                 G[i][j] = quad(self.couple_dens, 0, 1, args=(i, j))[0]
-        return G
+        return G+np.triu(G.T, 1)
     
+    @jit
+    def gram_matrix_gen(self):
+        #Faster method, less precise
+        A = np.zeros([self.K, self.K])
+        x = np.linspace(0, 1, 10000)
+        for i in range(self.K):
+            for j in range(i+1):
+                A[i,j]=simps(self.densities[i].pdf(x)*self.densities[j].pdf(x), x)
+        return A+np.triu(A.T,1)
+
     def dantzig_estim_cmp(self, x_matrix):
         beta_hat = self.beta_hat_gen(x_matrix)
         eta_gamma = self.eta_gamma_gen()
