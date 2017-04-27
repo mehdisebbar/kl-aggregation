@@ -203,7 +203,7 @@ if __name__ == "__main__":
         for scale in scales:
             densities.append(laplace(loc=m, scale=scale))
 
-    for N in [100]:
+    for N in [1000]:
         p = Pool(processes=9) 
         i=0
         #We send a batch of 20 tasks
