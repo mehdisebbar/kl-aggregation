@@ -14,7 +14,7 @@ class WeightEstimator(BaseEstimator):
         F = np.array([self.densities_dict[i].pdf(X) for i in range(self.K)]).T
         self.pi = Variable(self.K)
         constraints = [sum_entries(self.pi) == 1, self.pi >= 0]
-        objective = Minimize(-sum_entries(log(1+F * self.pi)))
+        objective = Minimize(-sum_entries(log(F * self.pi)))
         prob = Problem(objective, constraints)
         #We try different solvers
         try:

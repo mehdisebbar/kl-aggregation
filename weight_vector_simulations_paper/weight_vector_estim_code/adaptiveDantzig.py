@@ -29,7 +29,7 @@ class AdaptiveDantzigEstimator(BaseEstimator):
         dens_matrix_f_x = self.dens_matrix_f_x_gen(x_matrix)
         return 1./self.N*dens_matrix_f_x.sum(axis=0)
     
-    @jit
+    #@jit
     def sigma_m_sq_gen(self, m):
         r = 0
         for i in range(self.N):
