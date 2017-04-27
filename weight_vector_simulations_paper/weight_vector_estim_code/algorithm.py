@@ -17,22 +17,8 @@ class WeightEstimator(BaseEstimator):
         objective = Minimize(-sum_entries(log(F * self.pi)))
         prob = Problem(objective, constraints)
         #We try different solvers
-        try:
-            return prob.solve()
-        except SolverError :
-            print "ECOS failed"
-            pass
-        try:
-            return prob.solve(solver="CVXOPT")
-        except SolverError :
-            print "CVXOPT failed"
-            pass
-        try:
-            return prob.solve(solver="SCS")
-        except SolverError :
-            print "Impossible to solve"
-            raise SolverError
-            
+        prob.solve()
+
 
     def select_densities(self):
         # return index and proba of selected densities according to select_threshold

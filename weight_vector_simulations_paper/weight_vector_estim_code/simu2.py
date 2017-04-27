@@ -41,13 +41,21 @@ def normalize_density(f_pdf):
     return f_pdf/simps(f_pdf, np.linspace(0, 1, N_PDF))
 
 def simu_block(X, densities, cl, adapt_dantzig):
-    cl.fit(X)
-    estim_weighted_densities=cl.select_densities()
-    #dantzig estimator
-    lambda_dantzig = adapt_dantzig.fit(X)
+    try:
+        print "MLE",
+        cl.fit(X)
+        estim_weighted_densities=cl.select_densities()
+        #dantzig estimator
+        print "AD",
+        lambda_dantzig = adapt_dantzig.fit(X)
+    except:
+        print "Error: Cannot compute"
+        raise 
     #kde with Sheater-Jones bandwith selection method
+    print "KDE-SJ",
     kernel = gaussian_kde(X, bw_method=hsj(X))
     pdf_kde_hsj = kernel.pdf(np.linspace(0,1,10000))
+    print "KDE"
     kernel = gaussian_kde(X)
     pdf_kde = kernel.pdf(np.linspace(0,1,10000))
     return estim_weighted_densities, lambda_dantzig, pdf_kde, pdf_kde_hsj    
@@ -60,36 +68,45 @@ def simu(K, N):
     ###############
     #uniform case:#
     ###############
-    print "uniform"
+    print "uniform",
     uniform_X, uniform_f_star = dg.generate_uniform(n_points=N)
     uniform_f_star = normalize_density(uniform_f_star)
-    uniform_estim_weighted_densities, uniform_lambda_dantzig, uniform_kde_pdf_hsj, uniform_kde_pdf = simu_block(uniform_X, densities, cl, adapt_dantzig)   
+    try:
+        uniform_estim_weighted_densities, uniform_lambda_dantzig, uniform_kde_pdf_hsj, uniform_kde_pdf = simu_block(uniform_X, densities, cl, adapt_dantzig)   
+    except:
+        return 0
 
     ###############
     #rect case:#
     ###############
-    print "rect"
+    print "rect",
     rect_X, rect_f_star = dg.generate_rect(N, dist_rect)
     rect_f_star = normalize_density(rect_f_star)
-    rect_estim_weighted_densities, rect_lambda_dantzig, rect_kde_pdf_hsj, rect_kde_pdf = simu_block(rect_X, densities, cl, adapt_dantzig)
+    try:
+        rect_estim_weighted_densities, rect_lambda_dantzig, rect_kde_pdf_hsj, rect_kde_pdf = simu_block(rect_X, densities, cl, adapt_dantzig)
+    except:
+        return 0
 
     ###############
     #f* 5 gaussians, same weights
     # mean k/5, var=10^(-4)
     ###############
-    print "5 gaussians, same weights"
+    print "5 gaussians, same weights",
     var = 10**(-3)
     selected_densities_gauss = []
     for m in [0.2, 0.4, 0.6, 0.8, 1]:
         selected_densities_gauss.append(multivariate_normal(m, var))
     gauss_X, gauss_f_star, gauss_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_gauss, selected_densities=range(5))
     gauss_f_star = normalize_density(gauss_f_star)
-    gauss_estim_weighted_densities, gauss_lambda_dantzig, gauss_kde_pdf_hsj, gauss_kde_pdf = simu_block(gauss_X, densities, cl, adapt_dantzig)
+    try:
+        gauss_estim_weighted_densities, gauss_lambda_dantzig, gauss_kde_pdf_hsj, gauss_kde_pdf = simu_block(gauss_X, densities, cl, adapt_dantzig)
+    except:
+        return 0
 
     ###############
     #f* mix gaussian/laplace in dict
     ###############
-    print "f* mix gaussian/laplace in dict"
+    print "f* mix gaussian/laplace in dict",
     selected_densities_lapl_gauss = []
     selected_densities_lapl_gauss.append(multivariate_normal(0.2, 10**(-3)))
     selected_densities_lapl_gauss.append(multivariate_normal(0.6, 10**(-3)))
@@ -98,12 +115,15 @@ def simu(K, N):
     selected_densities_lapl_gauss.append(laplace(0.8,0.1))
     lapl_gauss_X, lapl_gauss_f_star, lapl_gauss_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_lapl_gauss, selected_densities=range(5))
     lapl_gauss_f_star = normalize_density(lapl_gauss_f_star)
-    lapl_gauss_estim_weighted_densities, lapl_gauss_lambda_dantzig, lapl_gauss_kde_pdf_hsj, lapl_gauss_kde_pdf = simu_block(lapl_gauss_X, densities, cl, adapt_dantzig)
+    try:
+        lapl_gauss_estim_weighted_densities, lapl_gauss_lambda_dantzig, lapl_gauss_kde_pdf_hsj, lapl_gauss_kde_pdf = simu_block(lapl_gauss_X, densities, cl, adapt_dantzig)
+    except:
+        return 0
     
     ###############
     #f* Another with densities not in dict
     ###############
-    print "f* with densities not in dict"
+    print "f* with densities not in dict",
     selected_densities_lapl_gauss_not_dict = []
     selected_densities_lapl_gauss_not_dict.append(multivariate_normal(0.1, 5*10**(-3)))
     selected_densities_lapl_gauss_not_dict.append(multivariate_normal(0.6, 10**(-3)))
@@ -114,8 +134,12 @@ def simu(K, N):
     selected_densities_lapl_gauss_not_dict.append(laplace(0.7, 0.1))
     lapl_gauss_not_dict_X, lapl_gauss_not_dict_f_star, lapl_gauss_not_dict_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_lapl_gauss_not_dict, selected_densities=range(7))
     lapl_gauss_not_dict_f_star = normalize_density(lapl_gauss_not_dict_f_star)
-    lapl_gauss_not_dict_estim_weighted_densities, lapl_gauss_not_dict_lambda_dantzig, lapl_gauss_not_dict_kde_pdf_hsj, lapl_gauss_not_dict_kde_pdf = simu_block(lapl_gauss_not_dict_X, densities, cl, adapt_dantzig)
-
+    try:
+        lapl_gauss_not_dict_estim_weighted_densities, lapl_gauss_not_dict_lambda_dantzig, lapl_gauss_not_dict_kde_pdf_hsj, lapl_gauss_not_dict_kde_pdf = simu_block(lapl_gauss_not_dict_X, densities, cl, adapt_dantzig)
+    except:
+        return 0
+    
+    print "OK, writing results"
     pickle.dump({"uniform_data": uniform_X,
                  "uniform_weight_vector_estim_lambda":uniform_estim_weighted_densities,
                  "uniform_adapative_dantzig":uniform_lambda_dantzig,
@@ -161,6 +185,7 @@ def simu(K, N):
                  "N" : N
              }, open(FOLDER +
                      "res_" + "K" + str(K) + "N" + str(N) +"_"+ str(uuid.uuid4()), "wb"))
+    return 1
 
 
 if __name__ == "__main__":
@@ -178,9 +203,12 @@ if __name__ == "__main__":
         for scale in scales:
             densities.append(laplace(loc=m, scale=scale))
 
-    for N in [1000]:
+    for N in [100]:
         p = Pool(processes=9) 
-        for _ in range(100):
-            p.apply_async(simu, args=(0, N))
+        i=0
+        #We send a batch of 20 tasks
+        while i <=1000:
+            res = [p.apply_async(simu, args=(0, N)) for _ in range(20)]
+            i += sum([r.get() for r in res])
         p.close()
         p.join()        
