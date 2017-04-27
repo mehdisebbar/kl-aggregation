@@ -160,7 +160,7 @@ def simu(K, N):
                  "densities" : densities,
                  "N" : N
              }, open(FOLDER +
-                     "res_" + "K" + str(K) + "N" + str(N) + str(uuid.uuid4()), "wb"))
+                     "res_" + "K" + str(K) + "N" + str(N) +"_"+ str(uuid.uuid4()), "wb"))
 
 
 if __name__ == "__main__":
@@ -178,7 +178,7 @@ if __name__ == "__main__":
         for scale in scales:
             densities.append(laplace(loc=m, scale=scale))
 
-    for N in [100]:
+    for N in [1000]:
         p = Pool(processes=9) 
         for _ in range(100):
             p.apply_async(simu, args=(0, N))

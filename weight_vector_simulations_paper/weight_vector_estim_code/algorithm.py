@@ -11,24 +11,21 @@ class WeightEstimator(BaseEstimator):
         self.select_threshold = select_threshold
 
     def fit(self, X):
-        self.F = np.array([self.densities_dict[i].pdf(X) for i in range(self.K)]).T
         F = np.array([self.densities_dict[i].pdf(X) for i in range(self.K)]).T
         self.pi = Variable(self.K)
-        constraints = [sum_entries(self.pi) == 1, self.pi >= 0, self.pi <= 1]
-        objective = Minimize(-sum_entries(log(F * self.pi)))
+        constraints = [sum_entries(self.pi) == 1, self.pi >= 0]
+        objective = Minimize(-sum_entries(log(1+F * self.pi)))
         prob = Problem(objective, constraints)
         #We try different solvers
         try:
-            return prob.solve(solver="ECOS")
+            return prob.solve()
         except SolverError :
-            pass
-        try:
-            return prob.solve(solver="MOSEK")
-        except SolverError :
+            print "ECOS failed"
             pass
         try:
             return prob.solve(solver="CVXOPT")
         except SolverError :
+            print "CVXOPT failed"
             pass
         try:
             return prob.solve(solver="SCS")
