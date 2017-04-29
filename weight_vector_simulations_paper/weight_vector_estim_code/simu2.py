@@ -54,11 +54,11 @@ def simu_block(X, densities, cl, adapt_dantzig):
     #kde with Sheater-Jones bandwith selection method
     print "KDE-SJ",
     kernel = gaussian_kde(X, bw_method=hsj(X))
-    pdf_kde_hsj = kernel.pdf(np.linspace(0,1,10000))
+    pdf_kde_hsj = kernel.pdf(np.linspace(0,1,N_PDF))
     print "KDE"
     kernel = gaussian_kde(X)
-    pdf_kde = kernel.pdf(np.linspace(0,1,10000))
-    return estim_weighted_densities, lambda_dantzig, pdf_kde, pdf_kde_hsj    
+    pdf_kde = kernel.pdf(np.linspace(0,1,N_PDF))
+    return estim_weighted_densities, lambda_dantzig, pdf_kde_hsj, pdf_kde
 
 def simu(K, N):
     dg = DensityGenerator(n_pdf= N_PDF)
@@ -203,11 +203,11 @@ if __name__ == "__main__":
         for scale in scales:
             densities.append(laplace(loc=m, scale=scale))
 
-    for N in [1000]:
+    for N in [100, 500, 1000]:
         p = Pool(processes=9) 
         i=0
         #We send a batch of 20 tasks
-        while i <=1000:
+        while i <=200:
             res = [p.apply_async(simu, args=(0, N)) for _ in range(20)]
             i += sum([r.get() for r in res])
         p.close()
