@@ -196,7 +196,7 @@ if __name__ == "__main__":
     for m in nodes_gauss:
         for var in var_list:
             densities.append(multivariate_normal(m, var))
-    scales =[0.05, 0.1, 0.5, 1]
+    scales =[0.05, 0.1, 0.2, 0.5, 1]
     nodes_lapl = [0, 0.2, 0.4, 0.6, 0.8, 1]
     for m in nodes_lapl:
         for scale in scales:
