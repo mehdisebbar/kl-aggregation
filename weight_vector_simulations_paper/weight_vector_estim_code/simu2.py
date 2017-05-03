@@ -126,13 +126,12 @@ def simu(K, N):
     print "f* with densities not in dict",
     selected_densities_lapl_gauss_not_dict = []
     selected_densities_lapl_gauss_not_dict.append(multivariate_normal(0.1, 5*10**(-3)))
-    selected_densities_lapl_gauss_not_dict.append(multivariate_normal(0.6, 10**(-3)))
-    selected_densities_lapl_gauss_not_dict.append(multivariate_normal(0, 10**(-2)))
-    selected_densities_lapl_gauss_not_dict.append(laplace(0.4, 0.1))
-    selected_densities_lapl_gauss_not_dict.append(laplace(0.8, 0.1))
-    selected_densities_lapl_gauss_not_dict.append(laplace(0.3, 0.1))
-    selected_densities_lapl_gauss_not_dict.append(laplace(0.7, 0.1))
-    lapl_gauss_not_dict_X, lapl_gauss_not_dict_f_star, lapl_gauss_not_dict_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_lapl_gauss_not_dict, selected_densities=range(7))
+    selected_densities_lapl_gauss_not_dict.append(multivariate_normal(0.65, 10**(-3)))
+    selected_densities_lapl_gauss_not_dict.append(multivariate_normal(0.9, 10**(-2)))
+    selected_densities_lapl_gauss_not_dict.append(laplace(0.5, 0.08))
+    selected_densities_lapl_gauss_not_dict.append(laplace(0.2, 0.07))
+    selected_densities_lapl_gauss_not_dict.append(laplace(0.75, 0.05))
+    lapl_gauss_not_dict_X, lapl_gauss_not_dict_f_star, lapl_gauss_not_dict_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_lapl_gauss_not_dict, selected_densities=range(len(selected_densities_lapl_gauss_not_dict)))
     lapl_gauss_not_dict_f_star = normalize_density(lapl_gauss_not_dict_f_star)
     try:
         lapl_gauss_not_dict_estim_weighted_densities, lapl_gauss_not_dict_lambda_dantzig, lapl_gauss_not_dict_kde_pdf_hsj, lapl_gauss_not_dict_kde_pdf = simu_block(lapl_gauss_not_dict_X, densities, cl, adapt_dantzig)
