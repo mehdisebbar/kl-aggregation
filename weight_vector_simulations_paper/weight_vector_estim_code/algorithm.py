@@ -5,7 +5,7 @@ from cvxpy import *
 
 class WeightEstimator(BaseEstimator):
 
-    def __init__(self, densities_dict, select_threshold=10e-10):
+    def __init__(self, densities_dict, select_threshold=1e-5):
         self.densities_dict  = densities_dict
         self.K = len(self.densities_dict)
         self.select_threshold = select_threshold
@@ -20,7 +20,7 @@ class WeightEstimator(BaseEstimator):
         prob.solve()
 
 
-    def select_densities(self):
+    def select_densities(self, select_threshold=1e-5):
         # return index and proba of selected densities according to select_threshold
         res = zip([i for i in range(self.K) if self.pi.value[i]>self.select_threshold],\
                (self.pi.value[self.pi.value>self.select_threshold]).tolist()[0])
