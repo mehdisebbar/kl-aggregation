@@ -75,11 +75,11 @@ def simu_block(X, densities, cl, adapt_dantzig):
     pdf_kde = kernel.pdf(np.linspace(0,1,N_PDF))
     print "MLE+bic"
     a=time()
-    mle_bic, mle_bic_model = mle_bic(X, MAX_COMPONENTS_MLE_BIC)
+    mle_bic_val, mle_bic_model = mle_bic(X, MAX_COMPONENTS_MLE_BIC)
     b=time()
     time_mle_bic = b-a
     print "Done"
-    return estim_weighted_densities, lambda_dantzig, pdf_kde_hsj, pdf_kde, mle_bic, mle_bic_model, time_ad, time_kde, time_kde_sj, time_mle, time_mle_bic
+    return estim_weighted_densities, lambda_dantzig, pdf_kde_hsj, pdf_kde, mle_bic_val, mle_bic_model, time_ad, time_kde, time_kde_sj, time_mle, time_mle_bic
 
 def simu(K, N):
     dg = DensityGenerator(n_pdf= N_PDF)
