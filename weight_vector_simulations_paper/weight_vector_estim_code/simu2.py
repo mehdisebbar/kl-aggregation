@@ -66,7 +66,7 @@ def simu_block(X, densities, cl, adapt_dantzig):
     b=time()
     time_kde_sj = b-a
     pdf_kde_hsj = kernel.pdf(np.linspace(0,1,N_PDF))
-    print "KDE"
+    print "KDE",
     a=time()
     kernel = gaussian_kde(X)
     b=time()
@@ -93,6 +93,7 @@ def simu(K, N):
     try:
         uniform_estim_weighted_densities, uniform_lambda_dantzig, uniform_kde_pdf_hsj, uniform_kde_pdf, uniform_mle_bic, uniform_mle_bic_model, uniform_time_ad, uniform_time_kde, uniform_time_kde_sj, uniform_time_mle, uniform_time_mle_bic = simu_block(uniform_X, densities, cl, adapt_dantzig)   
     except:
+        print "fail uniform"
         return 0
 
     ###############
@@ -228,7 +229,7 @@ def simu(K, N):
                  "lapl_gauss_not_dict_kde_time": lapl_gauss_not_dict_time_kde,
                  "lapl_gauss_not_dict_kde_sj_time": lapl_gauss_not_dict_time_kde_sj,
                  "lapl_gauss_not_dict_ad_time": lapl_gauss_not_dict_time_ad,
-                 
+
                  "densities" : densities,
                  "N" : N
              }, open(FOLDER +
