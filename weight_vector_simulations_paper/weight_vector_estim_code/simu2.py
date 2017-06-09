@@ -12,6 +12,8 @@ from scipy.stats import gaussian_kde
 from pythonABC.hselect import hsj
 from algorithm import WeightEstimator
 from adaptiveDantzig import AdaptiveDantzigEstimator
+from tools import mle_bic
+from time import time
 
 N_PDF = 10000
 SELECT_THRESHOLD = 10e-5
@@ -43,22 +45,39 @@ def normalize_density(f_pdf):
 def simu_block(X, densities, cl, adapt_dantzig):
     try:
         print "MLE",
+        a=time()
         cl.fit(X)
-        estim_weighted_densities=cl.select_densities()
+        estim_weighted_densities=cl.pi_final
+        b=time()
+        time_mle = b-a
         #dantzig estimator
         print "AD",
+        a=time()
         lambda_dantzig = adapt_dantzig.fit(X)
+        b=time()
+        time_ad = b-a
     except:
         print "Error: Cannot compute"
         raise 
     #kde with Sheater-Jones bandwith selection method
     print "KDE-SJ",
+    a=time()
     kernel = gaussian_kde(X, bw_method=hsj(X))
+    b=time()
+    time_kde_sj = b-a
     pdf_kde_hsj = kernel.pdf(np.linspace(0,1,N_PDF))
     print "KDE"
+    a=time()
     kernel = gaussian_kde(X)
+    b=time()
+    time_kde = b-a
     pdf_kde = kernel.pdf(np.linspace(0,1,N_PDF))
-    return estim_weighted_densities, lambda_dantzig, pdf_kde_hsj, pdf_kde
+    print "MLE+bic"
+    a=time()
+    mle_bic, mle_bic_model = mle_bic(X)
+    b=time()
+    time_mle_bic = b-a
+    return estim_weighted_densities, lambda_dantzig, pdf_kde_hsj, pdf_kde, mle_bic, mle_bic_model, time_ad, time_kde, time_kde_sj, time_mle, time_mle_bic
 
 def simu(K, N):
     dg = DensityGenerator(n_pdf= N_PDF)
@@ -72,7 +91,7 @@ def simu(K, N):
     uniform_X, uniform_f_star = dg.generate_uniform(n_points=N)
     uniform_f_star = normalize_density(uniform_f_star)
     try:
-        uniform_estim_weighted_densities, uniform_lambda_dantzig, uniform_kde_pdf_hsj, uniform_kde_pdf = simu_block(uniform_X, densities, cl, adapt_dantzig)   
+        uniform_estim_weighted_densities, uniform_lambda_dantzig, uniform_kde_pdf_hsj, uniform_kde_pdf, uniform_mle_bic, uniform_mle_bic_model, uniform_time_ad, uniform_time_kde, uniform_time_kde_sj, uniform_time_mle, uniform_time_mle_bic = simu_block(uniform_X, densities, cl, adapt_dantzig)   
     except:
         return 0
 
@@ -83,7 +102,7 @@ def simu(K, N):
     rect_X, rect_f_star = dg.generate_rect(N, dist_rect)
     rect_f_star = normalize_density(rect_f_star)
     try:
-        rect_estim_weighted_densities, rect_lambda_dantzig, rect_kde_pdf_hsj, rect_kde_pdf = simu_block(rect_X, densities, cl, adapt_dantzig)
+        rect_estim_weighted_densities, rect_lambda_dantzig, rect_kde_pdf_hsj, rect_kde_pdf, rect_mle_bic, rect_mle_bic_model, rect_time_ad, rect_time_kde, rect_time_kde_sj, rect_time_mle, rect_time_mle_bic = simu_block(rect_X, densities, cl, adapt_dantzig)
     except:
         return 0
 
@@ -99,7 +118,7 @@ def simu(K, N):
     gauss_X, gauss_f_star, gauss_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_gauss, selected_densities=range(5))
     gauss_f_star = normalize_density(gauss_f_star)
     try:
-        gauss_estim_weighted_densities, gauss_lambda_dantzig, gauss_kde_pdf_hsj, gauss_kde_pdf = simu_block(gauss_X, densities, cl, adapt_dantzig)
+        gauss_estim_weighted_densities, gauss_lambda_dantzig, gauss_kde_pdf_hsj, gauss_kde_pdf,gauss_mle_bic, gauss_mle_bic_model, gauss_time_ad, gauss_time_kde, gauss_time_kde_sj, gauss_time_mle, gauss_time_mle_bic = simu_block(gauss_X, densities, cl, adapt_dantzig)
     except:
         return 0
 
@@ -116,7 +135,7 @@ def simu(K, N):
     lapl_gauss_X, lapl_gauss_f_star, lapl_gauss_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_lapl_gauss, selected_densities=range(5))
     lapl_gauss_f_star = normalize_density(lapl_gauss_f_star)
     try:
-        lapl_gauss_estim_weighted_densities, lapl_gauss_lambda_dantzig, lapl_gauss_kde_pdf_hsj, lapl_gauss_kde_pdf = simu_block(lapl_gauss_X, densities, cl, adapt_dantzig)
+        lapl_gauss_estim_weighted_densities, lapl_gauss_lambda_dantzig, lapl_gauss_kde_pdf_hsj, lapl_gauss_kde_pdf, lapl_gauss_mle_bic, lapl_gauss_mle_bic_model, lapl_gauss_time_ad, lapl_gauss_time_kde, lapl_gauss_time_kde_sj, lapl_gauss_time_mle, lapl_gauss_time_mle_bic= simu_block(lapl_gauss_X, densities, cl, adapt_dantzig)
     except:
         return 0
     
@@ -134,7 +153,7 @@ def simu(K, N):
     lapl_gauss_not_dict_X, lapl_gauss_not_dict_f_star, lapl_gauss_not_dict_weights_star, _ = dg.gaussian(n_points=N, densities=selected_densities_lapl_gauss_not_dict, selected_densities=range(len(selected_densities_lapl_gauss_not_dict)))
     lapl_gauss_not_dict_f_star = normalize_density(lapl_gauss_not_dict_f_star)
     try:
-        lapl_gauss_not_dict_estim_weighted_densities, lapl_gauss_not_dict_lambda_dantzig, lapl_gauss_not_dict_kde_pdf_hsj, lapl_gauss_not_dict_kde_pdf = simu_block(lapl_gauss_not_dict_X, densities, cl, adapt_dantzig)
+        lapl_gauss_not_dict_estim_weighted_densities, lapl_gauss_not_dict_lambda_dantzig, lapl_gauss_not_dict_kde_pdf_hsj, lapl_gauss_not_dict_kde_pdf,  lapl_gauss_not_dict_mle_bic, lapl_gauss_not_dict_mle_bic_model, lapl_gauss_not_dict_time_ad, lapl_gauss_not_dict_time_kde, lapl_gauss_not_dict_time_kde_sj, lapl_gauss_not_dict_time_mle, lapl_gauss_not_dict_time_mle_bic= simu_block(lapl_gauss_not_dict_X, densities, cl, adapt_dantzig)
     except:
         return 0
     
@@ -145,6 +164,12 @@ def simu(K, N):
                  "uniform_kde_hsj": uniform_kde_pdf_hsj,
                  "uniform_kde": uniform_kde_pdf,
                  "uniform_f_star": uniform_f_star,
+                 "uniform_mle_bic_model": uniform_mle_bic_model,
+                 "uniform_mle_time": uniform_time_mle,
+                 "uniform_mle_bic_time": uniform_time_mle_bic,
+                 "uniform_kde_time": uniform_time_kde,
+                 "uniform_kde_sj_time": uniform_time_kde_sj,
+                 "uniform_ad_time": uniform_time_ad,
 
                  "rect_data": rect_X,
                  "rect_weight_vector_estim_lambda":rect_estim_weighted_densities,
@@ -152,6 +177,12 @@ def simu(K, N):
                  "rect_kde_hsj": rect_kde_pdf_hsj,
                  "rect_kde": rect_kde_pdf,
                  "rect_f_star": rect_f_star,
+                 "rect_mle_bic_model": rect_mle_bic_model,
+                 "rect_mle_time": rect_time_mle,
+                 "rect_mle_bic_time": rect_time_mle_bic,
+                 "rect_kde_time": rect_time_kde,
+                 "rect_kde_sj_time": rect_time_kde_sj,
+                 "rect_ad_time": rect_time_ad,
 
                  "gauss_data": gauss_X,
                  "gauss_weights_star": gauss_weights_star,
@@ -161,6 +192,12 @@ def simu(K, N):
                  "gauss_kde_hsj": gauss_kde_pdf_hsj,
                  "gauss_kde": gauss_kde_pdf,
                  "gauss_selected_densities" : selected_densities_gauss,
+                 "gauss_mle_bic_model": gauss_mle_bic_model,
+                 "gauss_mle_time": gauss_time_mle,
+                 "gauss_mle_bic_time": gauss_time_mle_bic,
+                 "gauss_kde_time": gauss_time_kde,
+                 "gauss_kde_sj_time": gauss_time_kde_sj,
+                 "gauss_ad_time": gauss_time_ad,
 
                  "lapl_gauss_data": lapl_gauss_X,
                  "lapl_gauss_weights_star": lapl_gauss_weights_star,
@@ -170,6 +207,12 @@ def simu(K, N):
                  "lapl_gauss_kde_hsj": lapl_gauss_kde_pdf_hsj,
                  "lapl_gauss_kde": lapl_gauss_kde_pdf,
                  "lapl_gauss_selected_densities" : selected_densities_lapl_gauss,
+                 "lapl_gauss_mle_bic_model": lapl_gauss_mle_bic_model,
+                 "lapl_gauss_mle_time": lapl_gauss_time_mle,
+                 "lapl_gauss_mle_bic_time": lapl_gauss_time_mle_bic,
+                 "lapl_gauss_kde_time": lapl_gauss_time_kde,
+                 "lapl_gauss_kde_sj_time": lapl_gauss_time_kde_sj,
+                 "lapl_gauss_ad_time": lapl_gauss_time_ad,
 
                  "lapl_gauss_not_dict_data": lapl_gauss_not_dict_X,
                  "lapl_gauss_not_dict_weights_star": lapl_gauss_not_dict_weights_star,
@@ -179,6 +222,12 @@ def simu(K, N):
                  "lapl_gauss_not_dict_kde_hsj": lapl_gauss_not_dict_kde_pdf_hsj,
                  "lapl_gauss_not_dict_kde": lapl_gauss_not_dict_kde_pdf,
                  "lapl_gauss_not_dict_selected_densities" : selected_densities_lapl_gauss_not_dict,
+                 "lapl_gauss_not_dict_mle_bic_model": lapl_gauss_not_dict_mle_bic_model,
+                 "lapl_gauss_not_dict_mle_time": lapl_gauss_not_dict_time_mle,
+                 "lapl_gauss_not_dict_mle_bic_time": lapl_gauss_not_dict_time_mle_bic,
+                 "lapl_gauss_not_dict_kde_time": lapl_gauss_not_dict_time_kde,
+                 "lapl_gauss_not_dict_kde_sj_time": lapl_gauss_not_dict_time_kde_sj,
+                 "lapl_gauss_not_dict_ad_time": lapl_gauss_not_dict_time_ad,
                  
                  "densities" : densities,
                  "N" : N

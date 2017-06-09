@@ -1,5 +1,6 @@
 import numpy as np
 from numba import jit
+from sklearn.mixture import GaussianMixture
 
 @jit()
 def simplex_proj_numba(y):
@@ -17,3 +18,15 @@ def simplex_proj_numba(y):
     for j in range(dim):
         res[j] = max(y[j]+lambd, 0)
     return res
+
+def mle_bic(X, kmax):
+    best_bic = 1e10
+    best_model = None
+    for k in range(2,kmax):
+        cl = GaussianMixture(n_components=k)
+        cl.fit(X)
+        bic = cl.bic(X)
+        if bic < best_bic:
+            best_bic = bic
+            best_model = cl
+    return best_bic, best_model

@@ -41,7 +41,7 @@ class WeightEstimator(BaseEstimator):
         self.K = len(self.densities_dict)
         self.select_threshold = select_threshold
         self.h = 1e-3
-        self.eps = 1e-5 #threshold on fista
+        self.eps = 1e-5 #treshold on fista
     
     def fit(self, X):
         self.N = X.shape[0]
@@ -69,10 +69,4 @@ class WeightEstimator(BaseEstimator):
     def gradient(self, F, pi):
         return -1./self.N*(F/((pi*F).sum(axis=1).reshape(-1,1))).sum(axis=0)
 
-    def select_densities(self, select_threshold=1e-5):
-        # return index and proba of selected densities according to select_threshold
-        res = zip([i for i in range(self.K) if self.pi_final[i]>self.select_threshold],\
-               (self.pi_final[self.pi_final>self.select_threshold]).tolist())
-        res.sort(key=lambda x: x[0])
-        return res
 
