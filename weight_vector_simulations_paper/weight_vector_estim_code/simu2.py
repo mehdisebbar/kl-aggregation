@@ -77,6 +77,7 @@ def simu_block(X, densities, cl, adapt_dantzig):
     mle_bic, mle_bic_model = mle_bic(X)
     b=time()
     time_mle_bic = b-a
+    print "Dosne"
     return estim_weighted_densities, lambda_dantzig, pdf_kde_hsj, pdf_kde, mle_bic, mle_bic_model, time_ad, time_kde, time_kde_sj, time_mle, time_mle_bic
 
 def simu(K, N):
