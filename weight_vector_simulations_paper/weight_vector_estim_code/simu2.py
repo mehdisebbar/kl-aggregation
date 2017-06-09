@@ -17,6 +17,7 @@ from time import time
 
 N_PDF = 10000
 SELECT_THRESHOLD = 10e-5
+MAX_COMPONENTS_MLE_BIC = 20
 FOLDER = str(datetime.now()).split(".")[0].replace(" ", "_").replace(":", ".") + "/"
 os.makedirs(FOLDER)
 
@@ -74,10 +75,10 @@ def simu_block(X, densities, cl, adapt_dantzig):
     pdf_kde = kernel.pdf(np.linspace(0,1,N_PDF))
     print "MLE+bic"
     a=time()
-    mle_bic, mle_bic_model = mle_bic(X)
+    mle_bic, mle_bic_model = mle_bic(X, MAX_COMPONENTS_MLE_BIC)
     b=time()
     time_mle_bic = b-a
-    print "Dosne"
+    print "Done"
     return estim_weighted_densities, lambda_dantzig, pdf_kde_hsj, pdf_kde, mle_bic, mle_bic_model, time_ad, time_kde, time_kde_sj, time_mle, time_mle_bic
 
 def simu(K, N):
