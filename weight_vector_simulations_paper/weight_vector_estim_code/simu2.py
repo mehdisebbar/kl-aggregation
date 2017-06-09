@@ -94,8 +94,8 @@ def simu(K, N):
     uniform_f_star = normalize_density(uniform_f_star)
     try:
         uniform_estim_weighted_densities, uniform_lambda_dantzig, uniform_kde_pdf_hsj, uniform_kde_pdf, uniform_mle_bic, uniform_mle_bic_model, uniform_time_ad, uniform_time_kde, uniform_time_kde_sj, uniform_time_mle, uniform_time_mle_bic = simu_block(uniform_X, densities, cl, adapt_dantzig)   
-    except:
-        print "fail uniform"
+    except Exception as e:
+        print e
         return 0
 
     ###############
