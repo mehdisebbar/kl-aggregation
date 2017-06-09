@@ -74,6 +74,7 @@ def simu_block(X, densities, cl, adapt_dantzig):
     time_kde = b-a
     pdf_kde = kernel.pdf(np.linspace(0,1,N_PDF))
     print "MLE+bic"
+    print X.shape
     a=time()
     mle_bic_val, mle_bic_model = mle_bic(X.reshape(1, -1), MAX_COMPONENTS_MLE_BIC)
     b=time()
