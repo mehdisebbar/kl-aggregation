@@ -1,6 +1,7 @@
 import numpy as np
 from numba import jit
 from sklearn.mixture import GaussianMixture
+from scipy.stats import uniform
 
 @jit()
 def simplex_proj_numba(y):
@@ -30,3 +31,10 @@ def mle_bic(X, kmax):
             best_bic = bic
             best_model = cl
     return best_bic, best_model
+
+class uniform_nonzero(object):
+    def __init__(self, loc, scale):
+        self.loc = loc
+        self.scale = scale
+    def pdf(self, x):
+        return uniform(self.loc, self.scale).pdf(x)+1e-20

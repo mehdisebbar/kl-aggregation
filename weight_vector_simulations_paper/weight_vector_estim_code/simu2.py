@@ -4,14 +4,14 @@ from multiprocessing import Pool
 import pickle
 import uuid
 import numpy as np
-from scipy.stats import multivariate_normal, laplace, uniform
+from scipy.stats import multivariate_normal, laplace
 from scipy.integrate import simps
 from DensitiesGenerator import DensityGenerator
 from scipy.stats import gaussian_kde
 from pythonABC.hselect import hsj
 from algorithm import WeightEstimator
 from adaptiveDantzig import AdaptiveDantzigEstimator
-from tools import mle_bic
+from tools import mle_bic, uniform_nonzero
 from time import time
 
 N_PDF = 10000
@@ -255,7 +255,7 @@ if __name__ == "__main__":
             densities.append(laplace(loc=m, scale=scale))
     #50 uniform densities 
     for i in range(50):
-        densities.append(uniform(i*1./50, 1./50))
+        densities.append(uniform_nonzero(i*1./50, 1./50))
 
     for N in [100, 500, 1000]:
         p = Pool(processes=9) 
