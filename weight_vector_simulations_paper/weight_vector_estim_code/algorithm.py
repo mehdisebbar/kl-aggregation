@@ -34,6 +34,7 @@ class WeightEstimator(BaseEstimator):
     """
     Finds the best convex combination of densities in dict by minimizing the 
     log likelihood. Based on FISTA.abs
+    Requires Numba, otherwise comment @jit decorators in this class and simplex_proj_numba
     """
 
     def __init__(self, densities_dict, select_threshold=1e-5):
