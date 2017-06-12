@@ -254,8 +254,9 @@ if __name__ == "__main__":
         for scale in scales:
             densities.append(laplace(loc=m, scale=scale))
     #50 uniform densities 
-    for i in range(50):
-        densities.append(uniform_nonzero(i*1./50, 1./50))
+    size_uniform = 10
+    for i in range(size_uniform):
+        densities.append(uniform_nonzero(i*1./size_uniform, 1./size_uniform))
 
     for N in [100, 500, 1000]:
         p = Pool(processes=9) 
