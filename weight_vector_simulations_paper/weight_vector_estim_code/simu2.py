@@ -4,8 +4,7 @@ from multiprocessing import Pool
 import pickle
 import uuid
 import numpy as np
-from scipy.stats import multivariate_normal
-from scipy.stats import laplace
+from scipy.stats import multivariate_normal, laplace, uniform
 from scipy.integrate import simps
 from DensitiesGenerator import DensityGenerator
 from scipy.stats import gaussian_kde
@@ -254,6 +253,9 @@ if __name__ == "__main__":
     for m in nodes_lapl:
         for scale in scales:
             densities.append(laplace(loc=m, scale=scale))
+    #50 uniform densities 
+    for i in range(50):
+        densities.append(uniform(i*1./50, 1./50))
 
     for N in [100, 500, 1000]:
         p = Pool(processes=9) 
