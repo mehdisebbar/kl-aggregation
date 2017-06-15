@@ -203,12 +203,13 @@ def generate_result_dataframe(data_tree):
 def retrieve_type(row):
     type_row=row["Type"]
     type_dens = "None"
+    method = "None"
     if "KL" in type_row:
         metric = "KL"
     else:
         metric = "L2"
-    for t in ["lapl_gauss_not_dict", "lapl_gauss", "uniform", "rect", "gauss"]:
-        if t == type_row.split("_"+metric)[0]:
+    for t in ["uniform", "rect", "gauss", "lapl_gauss", "lapl_gauss_not_dict"]:
+        if t in type_row:
             type_dens = t
     if "weight_estim" in type_row:
             method = "MLE"
@@ -217,16 +218,16 @@ def retrieve_type(row):
     if "kde" in type_row:
             if "hsj" in type_row:
                 method = "KDE SJ"
-            if "cv" in  type_row:
+            elif "cv" in  type_row:
                 method = "CV"
             else:
                 method = "KDE"
     if "bic" in type_row:
             method = "EM-BIC"
-
     return pd.Series({"metric":metric, "type_dens":type_dens, "method": method})
 
 def main():
+    "bizarre ce unamed: 0 qui apparait"
     data_tree = generate_data_tree(onlyfiles)
     df_results = generate_result_dataframe(data_tree)    
     df_results.to_csv("./full_results_N_100_500_1000_"+extension_name+"_"+simu_folder+".csv")
