@@ -17,10 +17,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.neighbors import KernelDensity
 from time import time
 
-simu_folder = "2017-06-12_18.37.51"
-folder = "/Users/mehdi/Downloads/"+simu_folder+"/"
-onlyfiles = [f for f in listdir(folder) if (isfile(join(folder, f)) and f.startswith("res_K"))]
-extension_name = "GLU"
+
 
 def cv_kde(X, n_pdf):
     """
@@ -211,21 +208,21 @@ def retrieve_type(row):
     for t in ["uniform", "rect", "gauss", "lapl_gauss", "lapl_gauss_not_dict"]:
         if t in type_row:
             type_dens = t
-    if "weight_estim" in type_row:
+    if ("weight_estim" in type_row) or ("_mle_" in type_row):
             method = "MLE"
-    if "adapative_dantzig" in type_row:
+    if ("adapative_dantzig" in type_row) or ("_ad_" in type_row) :
             method = "A.D"
     if "kde" in type_row:
-            if "hsj" in type_row:
+            if "sj" in type_row:
                 method = "KDE SJ"
             elif "cv" in  type_row:
-                method = "CV"
+                method = "KDE CV"
             else:
                 method = "KDE"
     if "bic" in type_row:
             method = "EM-BIC"
     return pd.Series({"metric":metric, "type_dens":type_dens, "method": method})
-
+    
 def main():
     "bizarre ce unamed: 0 qui apparait"
     data_tree = generate_data_tree(onlyfiles)
@@ -237,4 +234,8 @@ def main():
     df5.to_csv("./cleaned_results_N_100_500_1000_"+extension_name+"_"+simu_folder+".csv")
 
 if __name__ == '__main__':
+    simu_folder = "2017-06-12_18.37.51"
+    folder = "/Users/mehdi/Downloads/"+simu_folder+"/"
+    onlyfiles = [f for f in listdir(folder) if (isfile(join(folder, f)) and f.startswith("res_K"))]
+    extension_name = "GLU"
     main()
