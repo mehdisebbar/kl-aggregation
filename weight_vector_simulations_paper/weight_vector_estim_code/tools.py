@@ -1,9 +1,13 @@
+from time import time
 import numpy as np
 from numba import jit
 from sklearn.mixture import GaussianMixture
 from scipy.stats import uniform
 from pypmc.sampler.importance_sampling import ImportanceSampler
 from pypmc.tools.indicator import hyperrectangle
+from pypmc.density.mixture import create_gaussian_mixture
+from sklearn.neighbors import KernelDensity
+from sklearn.grid_search import GridSearchCV
 
 @jit()
 def simplex_proj_numba(y):
@@ -34,41 +38,68 @@ def mle_bic(X, kmax):
             best_model = cl
     return best_bic, best_model
 
-from pypmc.density.mixture import create_gaussian_mixture
+class KdeCV(object):
+    
+    def __init__(self, n_jobs = 1, cv=5, bw = np.linspace(0.1, 1.0, 10)):
+        self.grid = GridSearchCV(KernelDensity(),
+                    {'bandwidth': bw},
+                                 cv=cv, n_jobs=n_jobs) # 20-fold cross-validation
+    
+    def fit(self, X):
+        self.grid.fit(X)
+        self.best_estimator = self.grid.best_estimator_
 
-def binary_centers(K,p):
-    """
-    Generate an array of K centers on the edges of the hypercube of dim p
-    """
-    if K > 2**p:
-        print "Warning: not enough nodes"
-        K_ = 2**p
-    else:
-        K_ = K
-    centers = []
-    for i in range(K_):
-        bin_array = list(bin(i).split("b")[1])
-        zeros_arr = [0]*(p-len(bin_array))
-        centers.append(np.array(map(int, zeros_arr+bin_array)))
-    return np.array(centers)
+    def pdf(self, x):
+        return np.exp(self.best_estimator.score_samples(x.reshape(1, -1)))
 
-def generate_gaussian_mixture_sample(N, p, weights):
+class GaussianMixtureGen(object):
     """
     Generate a simple mixture with unit variances, the number of components are 
     given by the size of the vector of weights
     """
-    K = len(weights)
-    centers = binary_centers(K, p)
-    cov = np.array([1e-2*np.diag(np.ones(p)) for _ in range(K)])
-    mixture = create_gaussian_mixture(centers, cov, weights)
-    return mixture.propose(N)
+    def __init__(self, p, weights):
+        self.K = len(weights)
+        self.weights = weights
+        self.centers = self.binary_centers(self.K, p)
+        self.cov = np.array([1e-2*np.diag(np.ones(p)) for _ in range(self.K)])
         
-
+    def binary_centers(self, K,p):
+        """    
+        Generate an array of K centers on the edges of the hypercube of dim p
+        """
+        if K > 2**p:
+            print "Warning: not enough nodes"
+            K_ = 2**p
+        else:
+            K_ = K
+        centers = []
+        for i in range(K_):
+            bin_array = list(bin(i).split("b")[1])
+            zeros_arr = [0]*(p-len(bin_array))
+            centers.append(np.array(map(int, zeros_arr+bin_array)))
+        return np.array(centers, dtype=np.float)
+    
+    def get_params(self):
+        return self.centers, self.cov
+    
+    def sample(self, N):
+        mixture = create_gaussian_mixture(self.centers, self.cov, self.weights)
+        return mixture.propose(N)
+        
 def l2_norm(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
+    return importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercube_size = 3)
+
+def kl_norm(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
+    return importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercube_size = 3)
+
+def importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
     """
     Compute the L2 norm of f-g using importance sampling
     with sample_size samples drawn from a gaussian mixture f_sample from pypmc
-    input : the integrand (1-g/f)^2*f, f sampling distrib f* known, g estimator of density.
+    input : 
+    f_over_g : the integrand (1-g/f)^2*f with f real density and g estimator of density,
+               input is the pdf.
+    f_sample : sampling distrib f* known, type pypmc density mixture
     """
     # define indicator
     dim = f_sample.dim
