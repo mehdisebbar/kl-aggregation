@@ -1,6 +1,10 @@
 from time import time
+from os import listdir
+from os.path import isfile, join
+import pickle
 import numpy as np
 from numba import jit
+import pandas as pd
 from sklearn.mixture import GaussianMixture
 from scipy.stats import uniform
 from pypmc.sampler.importance_sampling import ImportanceSampler
@@ -8,6 +12,16 @@ from pypmc.tools.indicator import hyperrectangle
 from pypmc.density.mixture import create_gaussian_mixture
 from sklearn.neighbors import KernelDensity
 from sklearn.grid_search import GridSearchCV
+
+def get_results(folder):
+    """
+    Get results from a folder at path, starting with res and produce a dataframe
+    """
+    onlyfiles = [f for f in listdir(folder) if (isfile(join(folder, f)) and f.startswith("res_K"))]
+    res = []
+    for f in onlyfiles:
+        res.append(pickle.load(open(folder+f)))
+    return pd.DataFrame(res)
 
 @jit()
 def simplex_proj_numba(y):

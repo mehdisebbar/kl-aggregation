@@ -5,12 +5,14 @@ class DensityGenerator(object):
     """
     Density generator Class
     """
-    def __init__(self, n_pdf = 10000):
+    def __init__(self, n_pdf = 10000, xmin=0, xmax=1):
         self.n_pdf = n_pdf
+        self.xmin = xmin
+        self.xmax = xmax
 
     def generate_uniform(self, n_points):
         X_ = uniform.rvs(size=n_points)
-        return X_, np.apply_along_axis(uniform.pdf, 0, np.linspace(0, 1, self.n_pdf))
+        return X_, np.apply_along_axis(uniform.pdf, 0, np.linspace(self.xmin, self.xmax, self.n_pdf))
     
     def generate_rect(self, n_points, dist_rect):
         """
@@ -24,11 +26,11 @@ class DensityGenerator(object):
             (4./5,1) : 10./7
         }
         """
-        X_ = np.linspace(0, 1, n_points)
+        X_ = np.linspace(self.xmin, self.xmax, n_points)
         proba = np.array([self.prob_estim(x, dist_rect) for x in X_])
         proba = proba / proba.sum()
         return np.random.choice(X_, size=n_points, p=proba), np.array(
-            [self.prob_estim(x, dist_rect) for x in np.linspace(0, 1, self.n_pdf)])
+            [self.prob_estim(x, dist_rect) for x in np.linspace(self.xmin, self.xmax, self.n_pdf)])
     
     def gaussian(self, n_points, densities=None, selected_densities=None, s=5, cvx_rand=False, weights=None):
         if densities == None:
@@ -66,7 +68,7 @@ class DensityGenerator(object):
             X = np.hstack((X, densities[selected_densities[i]].rvs(sample_repartition_among_clusters[i])))
             np.random.shuffle(X)
         return (X, 
-        np.apply_along_axis(lambda x: weights.dot(np.array([densities[i].pdf(x) for i in selected_densities])), 0, np.linspace(0, 1, self.n_pdf)), 
+        np.apply_along_axis(lambda x: weights.dot(np.array([densities[i].pdf(x) for i in selected_densities])), 0, np.linspace(self.xmin, self.xmax, self.n_pdf)), 
         weights, 
         selected_densities)
     
@@ -74,5 +76,6 @@ class DensityGenerator(object):
         for intval in sorted(dist_rect.keys()):
             if x <= intval[1]:
                 return dist_rect[intval]
+        return 0
     
             
