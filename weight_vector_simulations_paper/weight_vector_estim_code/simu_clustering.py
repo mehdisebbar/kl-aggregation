@@ -84,6 +84,55 @@ class IntegrandKLDensity(object):
 
     def pdf(self, x):
         return np.log(self.f(x)/self.g(x))
+class BasicGen(object):
+    #dirty gross generator
+    def __init__(self, dim=5):
+        self.dim = dim
+        self.params = [
+            (np.array([[3, 0, 0, 0, 0],
+                      [0, 0.1, 0, 0, 0],
+                      [0, 0, 0.1, 0, 0],
+                      [0, 0, 0, 0.1, 1],
+                      [0, 0, 0, 1, 3]]), 
+             np.array([0.1, 0.1, 0.1, 0.1, 0.1])), 
+            (np.array([[0.1, 0, 0, 0, 0],
+                            [0, 2, -0.2, 0, 0],
+                            [0, -0.2, 0.1, 0, 0],
+                            [0, 0, 0, 0.1, 0],
+                            [0, 0, 0, 0, 1]]),
+             np.array([0.8, 0.8, 0.8, 0.8, 0.8])), 
+            (np.array([[1, 0.1, 1.9, 0, 0],
+                            [0.1, 1, 0.2, 0, 0],
+                            [1.9, 0.2, 5, 0, 0],
+                            [0, 0, 0, 0.1, 0],
+                            [0, 0, 0, 0, 0.1]]),
+             np.array([0.1, 0.6, 0.6, 0.8, 0.1])),
+            (np.array([[0.5, 1, -1, 0, 0],
+                    [1, 2, 0, 0, 0],
+                    [-1, 0, 1, 0, 0],
+                    [0, 0, 0, 3, 0],
+                    [0, 0, 0, 0, 0.1]]),
+             np.array([0.5, 0.5, 0.4, 0.4, 0.4]))]
+        self.change_dim(self.dim)
+        self.means, self.variances = zip(*self.params)
+    
+    def change_dim(self, p):
+        params = []
+        for cov, m in self.params:
+            C = cov[:p,:p]
+            params.append((m[:p], 1e-3*C.T.dot(C)))
+        self.params = params
+    
+    def get_params(self):
+        return self.means, self.variances
+    
+    def sample(self, N):
+        #We generate a dataset with specific data
+        X = multivariate_normal(self.params[0][0], self.params[0][1]).rvs(N/4)
+        for m, cov in self.params[1:]:
+            X = np.vstack([X, multivariate_normal(m, cov).rvs(N/4)])
+        np.random.shuffle(X)
+        return X
 
 def simu(N, K, dim):
     try:
@@ -92,8 +141,11 @@ def simu(N, K, dim):
         weights = 1./K*np.ones(K)
         max_pca_comp = dim/2+1
         # We generate the Gaussian mixture
-        gg = GaussianMixtureGen(dim, weights)
+        #gg = GaussianMixtureGen(dim, weights)
+        #centers_star, cov_star = gg.get_params()
+        gg = BasicGen(dim)
         centers_star, cov_star = gg.get_params()
+        #X_ = gg.sample(N)
         X_ = gg.sample(N)
         #We normalize the data for the PCA in the KL aggreg
         X = sc.fit_transform(X_)
@@ -163,6 +215,7 @@ def simu(N, K, dim):
                          "res_" + "K" + str(K) + "p" + str(dim) + "N" + str(N) +"_"+ str(uuid.uuid4()), "wb"))
         return 1
     except:
+        print "failed on try"
         return 0
 
 if __name__ == "__main__":
@@ -173,12 +226,12 @@ if __name__ == "__main__":
         (4,2,500),
         (4,5,100),
         (4,5,500),
-        (4,5,1000),
-        (10,5,100),
-        (10,5,500),
-        (10,5,1000),
-        (10,20,500),
-        (10,20,1000)
+        (4,5,1000)
+        #(10,5,100),
+        #(10,5,500),
+        #(10,5,1000),
+        #(10,20,500),
+        #(10,20,1000)
     ]
     for K, dim, N in simu_list:
         if K > 2**dim:
