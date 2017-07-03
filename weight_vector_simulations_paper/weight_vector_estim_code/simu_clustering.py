@@ -84,6 +84,7 @@ class IntegrandKLDensity(object):
 
     def pdf(self, x):
         return np.log(self.f(x)/self.g(x))
+
 class BasicGen(object):
     #dirty gross generator
     def __init__(self, dim=5):
@@ -215,33 +216,44 @@ def simu(N, K, dim):
                          "res_" + "K" + str(K) + "p" + str(dim) + "N" + str(N) +"_"+ str(uuid.uuid4()), "wb"))
         return 1
     except:
-        print "failed on try"
+        print "failed"
         return 0
+
 
 if __name__ == "__main__":
     print FOLDER
-    simu_list = [
-        (2,2,100),
-        (4,2,100),
-        (4,2,500),
-        (4,5,100),
-        (4,5,500),
-        (4,5,1000)
-        #(10,5,100),
-        #(10,5,500),
-        #(10,5,1000),
-        #(10,20,500),
-        #(10,20,1000)
-    ]
-    for K, dim, N in simu_list:
-        if K > 2**dim:
-            pass
-        else:
+#    simu_list = [
+#        (2,2,100),
+#        (4,2,100),
+#        (4,2,500),
+#        (4,5,100),
+#        (4,5,500),
+#        (4,5,1000)
+#        #(10,5,100),
+#        #(10,5,500),
+#        #(10,5,1000),
+#        #(10,20,500),
+#        #(10,20,1000)
+#    ]
+#   for K, dim, N in simu_list:
+#       if K > 2**dim:
+#           pass
+#       else:
+#           p = Pool(processes=8) 
+#           i=0
+#           #We send a batch of 20 tasks
+#           while i <=100:
+#               res = [p.apply_async(simu, args=(N, K, dim)) for _ in range(20)]
+#               i += sum([r.get() for r in res])
+#           p.close()
+#           p.join()        
+    for dim in [3, 4, 5]:
+        for N in [100, 500, 1000]:
             p = Pool(processes=8) 
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, K, dim)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
-            p.join()        
+            p.join() 
