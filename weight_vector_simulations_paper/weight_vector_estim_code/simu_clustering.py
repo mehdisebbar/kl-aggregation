@@ -103,17 +103,30 @@ class BasicGen(object):
                             [0, 0, 0, 0, 1]]),
              np.array([0.8, 0.8, 0.8, 0.8, 0.8])), 
             (np.array([[1, 0.1, 1.9, 0, 0],
-                            [0.1, 1, 0.2, 0, 0],
-                            [1.9, 0.2, 5, 0, 0],
-                            [0, 0, 0, 0.1, 0],
-                            [0, 0, 0, 0, 0.1]]),
-             np.array([0.1, 0.6, 0.6, 0.8, 0.1])),
+                       [0.1, 0.5, -1, 0, 0],
+                       [1.9, -1, 3, 0, 0],
+                       [0, 0, 0, 0.1, 0],
+                       [0, 0, 0, 0, 0.1]]),
+             np.array([0.1, 0.4, 0.6, 0.8, 0.1])),
             (np.array([[0.5, 1, -1, 0, 0],
-                    [1, 2, 0, 0, 0],
-                    [-1, 0, 1, 0, 0],
-                    [0, 0, 0, 3, 0],
-                    [0, 0, 0, 0, 0.1]]),
-             np.array([0.5, 0.5, 0.4, 0.4, 0.4]))]
+                       [1, 2, 0, 0, 0],
+                       [-1, 0, 0.1, 0, 0],
+                       [0, 0, 0, 1, 0],
+                       [0, 0, 0, 0, 0.1]]),
+             np.array([0.5, 0.8, 0.4, 0.4, 0.4])),
+            (np.array([[4, 0, 0, 0, 0],
+                       [0, 0.5, 0, 0, 0],
+                       [0, 0, 0.2, 0, 0],
+                       [0, 0, 0, 0.2, 0],
+                       [0, 0, 0, 0, 0.2]]),
+             np.array([0.9, 0.2, 0.9, 0.9, 0.9])),
+            (np.array([[0.1, 0, -1, 0, 0],
+                       [0,  6, 0,   0, 0],
+                       [-1, 0, 0.1, 0, 0],
+                       [0, 0, 0, 0.1, 0],
+                       [0, 0, 0, 0, 0.1]]),
+             np.array([1, 0.8, 0.2, 0.4, 0.4]))
+        ]
         self.change_dim(self.dim)
         self.means, self.variances = zip(*self.params)
     
@@ -127,11 +140,18 @@ class BasicGen(object):
     def get_params(self):
         return self.means, self.variances
     
-    def sample(self, N):
+    def sample(self, N, with_ids = False):
         #We generate a dataset with specific data
-        X = multivariate_normal(self.params[0][0], self.params[0][1]).rvs(N/4)
+        K = len(self.params)
+        X = multivariate_normal(self.params[0][0], self.params[0][1]).rvs(N/K)
+        ids = np.ones(N/K)
+        i = 2
         for m, cov in self.params[1:]:
-            X = np.vstack([X, multivariate_normal(m, cov).rvs(N/4)])
+            X = np.vstack([X, multivariate_normal(m, cov).rvs(N/K)])
+            ids = np.hstack([ids, i*np.ones(N/K)])
+            i+=1
+        if with_ids:
+            X = np.hstack([X, ids.reshape(-1,1)])
         np.random.shuffle(X)
         return X
 
