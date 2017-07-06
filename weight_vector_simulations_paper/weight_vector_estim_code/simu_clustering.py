@@ -159,7 +159,7 @@ def simu(N, K, dim):
     try:
         #Some initialization
         sc = StandardScaler()
-        weights = 1./K*np.ones(K)
+        
         max_pca_comp = dim/2+1
         # We generate the Gaussian mixture
         #gg = GaussianMixtureGen(dim, weights)
@@ -167,7 +167,11 @@ def simu(N, K, dim):
         gg = BasicGen(dim)
         centers_star, cov_star = gg.get_params()
         #X_ = gg.sample(N)
-        X_ = gg.sample(N)
+        X_ids = gg.sample(N, with_ids=True)
+        ids = X_ids[:,-1]
+        X_ = X_ids[:,:-1]
+        K = len(set(ids))
+        weights = 1./K*np.ones(K)
         #We normalize the data for the PCA in the KL aggreg
         X = sc.fit_transform(X_)
         #We generate the target density f_star from the components
