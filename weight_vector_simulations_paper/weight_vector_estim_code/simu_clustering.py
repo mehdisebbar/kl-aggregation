@@ -153,7 +153,7 @@ class BasicGen(object):
         if with_ids:
             X = np.hstack([X, ids.reshape(-1,1)])
         np.random.shuffle(X)
-        return Xs
+        return X
 
 def simu(N, K, dim):
     try:
