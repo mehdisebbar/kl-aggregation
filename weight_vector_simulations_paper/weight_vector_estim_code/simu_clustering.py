@@ -153,7 +153,7 @@ class BasicGen(object):
         if with_ids:
             X = np.hstack([X, ids.reshape(-1,1)])
         np.random.shuffle(X)
-        return X
+        return Xs
 
 def simu(N, K, dim):
     try:
@@ -235,8 +235,8 @@ def simu(N, K, dim):
                  }, open(FOLDER +
                          "res_" + "K" + str(K) + "p" + str(dim) + "N" + str(N) +"_"+ str(uuid.uuid4()), "wb"))
         return 1
-    except:
-        print "failed"
+    except Exception as e:
+        print e
         return 0
 
 
