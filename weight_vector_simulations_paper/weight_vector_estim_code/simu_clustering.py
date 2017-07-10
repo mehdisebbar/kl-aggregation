@@ -155,6 +155,42 @@ class BasicGen(object):
         np.random.shuffle(X)
         return X
 
+class BasicGenD3(object):
+    #Only dim 3
+    def __init__(self, dim):
+        self.covs = 1e-3*np.array([
+            np.array([[10, 0, 3],
+                      [0, 0.1, 0],
+                      [3, 0, 1]]),
+                  
+            np.array([[0.1,0,0],
+                      [0, 2 ,-4],
+                      [0, -4, 10]]),
+                  
+            np.array([[0.1, 0.3, 0],
+                      [0.3, 20, 0],
+                      [0, 0, 0.5]]),
+            ])
+        self.means = [
+            np.array([0.1, 0.1, 0.1]),
+            np.array([0.1, 0.8 , 0.8]),
+            np.array([0.6, 0.2, 0.8]),
+            ]
+    def sample(self, N, with_ids = False):
+        X = multivariate_normal(self.means[0], self.covs[0]).rvs(N/3)
+        ids = np.ones(N/3)
+        X = np.vstack([X, multivariate_normal(self.means[1], self.covs[1]).rvs(N/3)])
+        ids = np.hstack([ids, 2*np.ones(N/3)])
+        X = np.vstack([X, multivariate_normal(self.means[2], self.covs[2]).rvs(N/3)])
+        ids = np.hstack([ids, 3*np.ones(N/3)])
+        if with_ids:
+            X = np.hstack([X, ids.reshape(-1,1)])
+        np.random.shuffle(X)
+        return X
+
+    def get_params(self):
+        return self.means, self.covs
+
 def simu(N, K, dim):
     try:
         #Some initialization
@@ -164,7 +200,7 @@ def simu(N, K, dim):
         # We generate the Gaussian mixture
         #gg = GaussianMixtureGen(dim, weights)
         #centers_star, cov_star = gg.get_params()
-        gg = BasicGen(dim)
+        gg = BasicGenD3(dim)
         centers_star, cov_star = gg.get_params()
         #X_ = gg.sample(N)
         X_ids = gg.sample(N, with_ids=True)
@@ -271,7 +307,7 @@ if __name__ == "__main__":
 #               i += sum([r.get() for r in res])
 #           p.close()
 #           p.join()        
-    for dim in [3, 4, 5]:
+    for dim in [3]:
         for N in [100, 500, 1000]:
             p = Pool(processes=8) 
             i=0

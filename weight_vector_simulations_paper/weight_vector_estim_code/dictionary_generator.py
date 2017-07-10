@@ -22,22 +22,39 @@ class DictionaryGenerator(BaseEstimator):
     subspace_cluster_dim = dimension of subspace spanned by principal comps.
     """
     
-    def __init__(self, max_pca_comp = 2, kmeans_k = 2, subspace_cluster_dim = 2):
+    def __init__(self, max_pca_comp = 2, kmeans_k = 5, subspace_cluster_dim = 2):
         self.max_pca_comp = max_pca_comp
         self.kmeans_k = kmeans_k
         self.subspace_cluster_dim = subspace_cluster_dim
-        self.pca = PCA(self.max_pca_comp)
         self.sc = StandardScaler()
-        self.kmeans = KMeans()
+        self.kmeans = KMeans(self.kmeans_k)
+
+    def select_eigvals(self, eigval):
+        #select singular values according to 
+        #"The Optimal Hard Threshold for Singular Values is 4/sqrt(3)",  Matan Gavish and David L. Donoho
+        #returns 2 components and their original indexes.
+        res = []
+        idx_selected = []
+        sorted_eigval = sorted(eigval)[::-1]
+        for idx, val in enumerate(sorted_eigval):
+            if val > 2.858*np.median(eigval):
+                res.append(val)
+                idx_selected.append(idx)
+        #We make sure to return at least 2 components
+        if len(res) == 0:
+            res = sorted_eigval[:2]
+        if len(res) < 2:
+            res=res+sorted_eigval[idx_selected[-1]+1:2]
+        return res, [np.argwhere(eigval==e)[0][0] for e in res]
     
     def extract_principal_components(self, X):
         #we rescale the data before PCA
         X_pca = self.pca.fit_transform(self.sc.fit_transform(X))
         return X_pca
     
-    def get_clusters(self, X_pca, X):
+    def get_clusters(self, X2, X):
         densities = []
-        self.kmeans.fit(X_pca)
+        self.kmeans.fit(X2)
         labels_ = self.kmeans.labels_
         means, covars = self.build_means_covars_from_labels(X, labels_)
         for j in range(self.kmeans_k):
@@ -58,8 +75,11 @@ class DictionaryGenerator(BaseEstimator):
     def fit(self, X):
         self.densities = []
         self.p = X.shape[1]
+        eigval, eigvect =  np.linalg.eig(1./X.shape[0]*X.T.dot(X))
+        self.pca = PCA(self.p)
         X_pca = self.extract_principal_components(X)
-        for components_couple in combinations(range(X_pca.shape[1]), self.subspace_cluster_dim):
+        X2 = X[:, self.select_eigvals(eigval)[1]]
+        for components_couple in combinations(range(X2.shape[1]), self.subspace_cluster_dim):
             self.densities.append(self.get_clusters(X[:, components_couple], X))
     
     def fit_transform(self, X):
