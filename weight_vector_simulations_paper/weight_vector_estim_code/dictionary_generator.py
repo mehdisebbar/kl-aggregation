@@ -5,6 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from scipy.stats import multivariate_normal
 from sklearn.base import BaseEstimator
+from tools import mle_bic
 
 class DictionaryGenerator(BaseEstimator):
     """
@@ -22,12 +23,13 @@ class DictionaryGenerator(BaseEstimator):
     subspace_cluster_dim = dimension of subspace spanned by principal comps.
     """
     
-    def __init__(self, max_pca_comp = 2, kmeans_k = 5, subspace_cluster_dim = 2):
+    def __init__(self, max_pca_comp = 2, kmeans_k = 10, subspace_cluster_dim = 2, verbose=False):
         self.max_pca_comp = max_pca_comp
         self.kmeans_k = kmeans_k
         self.subspace_cluster_dim = subspace_cluster_dim
         self.sc = StandardScaler()
         self.kmeans = KMeans(self.kmeans_k)
+        self.verbose = verbose
 
     def select_eigvals(self, eigval):
         #select singular values according to 
@@ -52,12 +54,26 @@ class DictionaryGenerator(BaseEstimator):
         X_pca = self.pca.fit_transform(self.sc.fit_transform(X))
         return X_pca
     
-    def get_clusters(self, X2, X):
+    def get_clusters(self, X2, X, method="em-bic"):
+        """
+        Get clusters in the subspace. Default method is EM-bic with kmeans_k 
+        maximum clusters, otherwise KMeans with kmeans_k clusters.
+        X2: projected data into the subspace
+        X: original data, used to recover full variances and means.
+        """
+        if method == "em-bic":
+            _, model = mle_bic(X2, self.kmeans_k)
+            labels_ = model.predict(X2)
+            k_ = model.get_params()['n_components']
+            if self.verbose:
+                print "selected clusters with em-bic: ", k_
+        else:
+            self.kmeans.fit(X2)
+            labels_ = self.kmeans.labels_
+            k_ = self.kmeans_k
         densities = []
-        self.kmeans.fit(X2)
-        labels_ = self.kmeans.labels_
         means, covars = self.build_means_covars_from_labels(X, labels_)
-        for j in range(self.kmeans_k):
+        for j in range(k_):
             densities.append(self.build_normal_distributions(means[j], covars[j]))
         return densities
     
@@ -78,7 +94,10 @@ class DictionaryGenerator(BaseEstimator):
         eigval, eigvect =  np.linalg.eig(1./X.shape[0]*X.T.dot(X))
         self.pca = PCA(self.p)
         X_pca = self.extract_principal_components(X)
-        X2 = X[:, self.select_eigvals(eigval)[1]]
+        selected_eigvals = self.select_eigvals(eigval)[1]
+        if self.verbose:
+            print "Selected eigenvalues: ", selected_eigvals
+        X2 = X[:, selected_eigvals]
         for components_couple in combinations(range(X2.shape[1]), self.subspace_cluster_dim):
             self.densities.append(self.get_clusters(X[:, components_couple], X))
     
