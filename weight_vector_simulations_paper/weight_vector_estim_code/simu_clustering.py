@@ -200,7 +200,7 @@ def simu(N, K, dim):
         # We generate the Gaussian mixture
         #gg = GaussianMixtureGen(dim, weights)
         #centers_star, cov_star = gg.get_params()
-        gg = BasicGenD3(dim)
+        gg = BasicGen(dim)
         centers_star, cov_star = gg.get_params()
         #X_ = gg.sample(N)
         X_ids = gg.sample(N, with_ids=True)
@@ -307,7 +307,7 @@ if __name__ == "__main__":
 #               i += sum([r.get() for r in res])
 #           p.close()
 #           p.join()        
-    for dim in [3]:
+    for dim in [2, 3, 4, 5]:
         for N in [100, 500, 1000]:
             p = Pool(processes=8) 
             i=0
