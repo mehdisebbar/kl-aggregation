@@ -64,23 +64,23 @@ class DictionaryGenerator(BaseEstimator):
         if method == "em-bic":
             _, model = mle_bic(X2, self.kmeans_k)
             labels_ = model.predict(X2)
-            k_ = model.get_params()['n_components']
+            self.k_ = model.get_params()['n_components']
             if self.verbose:
-                print "selected clusters with em-bic: ", k_
+                print "selected clusters with em-bic: ", self.k_
         else:
             self.kmeans.fit(X2)
             labels_ = self.kmeans.labels_
-            k_ = self.kmeans_k
+            self.k_ = self.kmeans_k
         densities = []
         means, covars = self.build_means_covars_from_labels(X, labels_)
-        for j in range(k_):
+        for j in range(self.k_):
             densities.append(self.build_normal_distributions(means[j], covars[j]))
         return densities
     
     def build_means_covars_from_labels(self, X, y):
-        means = np.zeros([self.kmeans_k, self.p])
-        covars = np.zeros([self.kmeans_k, self.p, self.p])
-        for i in range(self.kmeans_k):
+        means = np.zeros([self.k_, self.p])
+        covars = np.zeros([self.k_, self.p, self.p])
+        for i in range(self.k_):
             means[i] = X[y==i].mean(axis = 0)
             covars[i] = np.cov((X[y==i]).T)
         return means, covars
