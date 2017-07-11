@@ -307,7 +307,7 @@ if __name__ == "__main__":
 #               i += sum([r.get() for r in res])
 #           p.close()
 #           p.join()        
-    for dim in [2, 3, 4, 5]:
+    for dim in [3, 4, 5]:
         for N in [100, 500, 1000]:
             p = Pool(processes=8) 
             i=0
