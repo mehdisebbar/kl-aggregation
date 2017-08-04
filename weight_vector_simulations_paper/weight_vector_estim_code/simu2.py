@@ -111,7 +111,7 @@ def simu(K, N):
 
     ###############
     #f* 5 gaussians, same weights
-    # mean k/5, var=10^(-4)
+    # mean k/5, var=10^(-3)
     ###############
     print "5 gaussians, same weights",
     var = 10**(-3)
@@ -173,7 +173,6 @@ def simu(K, N):
                  "uniform_kde_time": uniform_time_kde,
                  "uniform_kde_sj_time": uniform_time_kde_sj,
                  "uniform_ad_time": uniform_time_ad,
-
                  "rect_data": rect_X,
                  "rect_weight_vector_estim_lambda":rect_estim_weighted_densities,
                  "rect_adapative_dantzig":rect_lambda_dantzig,

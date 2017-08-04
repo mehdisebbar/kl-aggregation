@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from time import time
+from itertools import combinations
 from os import listdir
 from os.path import isfile, join
 import pickle
@@ -12,8 +15,11 @@ from pypmc.tools.indicator import hyperrectangle
 from pypmc.density.mixture import create_gaussian_mixture
 from sklearn.neighbors import KernelDensity
 from sklearn.grid_search import GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from scipy.stats import ks_2samp
 
-def get_results(folder):
+
+def get_results(folder, keys):
     """
     Get results from a folder at path, starting with res and produce a dataframe
     """
@@ -134,3 +140,40 @@ class uniform_nonzero(object):
         self.scale = scale
     def pdf(self, x):
         return uniform(self.loc, self.scale).pdf(x)+1e-20
+
+def goodness_fit_densities(densities_list, SAMPLE_SIZE=100):
+    """
+    Multidimensional Goodness-of-fit from: On Multivariate Goodness–of–Fit and Two–Sample Testing
+    from Jerome H. Friedman. Performs a gof test on all combinations of 2 densities. 
+    Transform the problem to a binary classification problem and a Kolmogorov-Smirnov test.
+    input : a list of densities, some might be the same
+    output: a new list of "unique" densities
+    """
+    new_dens = []
+    for d1, d2 in list(combinations(densities_list, 2)):
+        s = 0
+        #This might not be statistically correct, but helps to stabiliize the result
+        for _ in range(10):
+            X1 = np.hstack([d1.rvs(SAMPLE_SIZE), np.ones(SAMPLE_SIZE).reshape(-1,1), np.arange(SAMPLE_SIZE).reshape(-1,1)])
+            X2 = np.hstack([d2.rvs(SAMPLE_SIZE), -np.ones(SAMPLE_SIZE).reshape(-1,1), np.arange(SAMPLE_SIZE, 2*SAMPLE_SIZE).reshape(-1,1)])
+            X = np.vstack([X1, X2])
+            np.random.shuffle(X)
+            indexes = X[:,-1]
+            X = X[:,:-1]
+            clf = LogisticRegression()
+            #clf = RandomForestClassifier(max_depth=5, n_estimators=20)
+            clf.fit(X[:,:-1], X[:,-1])
+            scores = clf.predict_proba(X[:,:-1])
+            s_plus = scores[indexes < SAMPLE_SIZE][:,0]
+            s_min = scores[indexes >= SAMPLE_SIZE][:,0]
+            a = ks_2samp(s_plus, s_min)
+            if a.pvalue > 0.3:
+                s+=1
+        if s > 0.5 and d1 not in new_dens:
+            new_dens.append(d1)
+        else:
+            if d1 not in new_dens:
+                new_dens.append(d1)
+            if d2 not in new_dens:
+                new_dens.append(d2)
+    return new_dens

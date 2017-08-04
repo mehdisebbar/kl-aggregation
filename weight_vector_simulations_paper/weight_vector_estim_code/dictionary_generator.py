@@ -6,6 +6,8 @@ from sklearn.cluster import KMeans
 from scipy.stats import multivariate_normal
 from sklearn.base import BaseEstimator
 from tools import mle_bic
+from copy import deepcopy
+from tools import goodness_fit_densities
 
 class DictionaryGenerator(BaseEstimator):
     """
@@ -23,7 +25,8 @@ class DictionaryGenerator(BaseEstimator):
     subspace_cluster_dim = dimension of subspace spanned by principal comps.
     """
     
-    def __init__(self, max_pca_comp = 2, kmeans_k = 10, subspace_cluster_dim = 2, verbose=False):
+    def __init__(self, max_pca_comp = 2, kmeans_k = 10, subspace_cluster_dim = 2, verbose=False, pc_select = False):
+        self.pc_select = pc_select
         self.max_pca_comp = max_pca_comp
         self.kmeans_k = kmeans_k
         self.subspace_cluster_dim = subspace_cluster_dim
@@ -34,7 +37,7 @@ class DictionaryGenerator(BaseEstimator):
     def select_eigvals(self, eigval):
         #select singular values according to 
         #"The Optimal Hard Threshold for Singular Values is 4/sqrt(3)",  Matan Gavish and David L. Donoho
-        #returns 2 components and their original indexes.
+        #returns at least 2 components and their original indexes.
         res = []
         idx_selected = []
         sorted_eigval = sorted(eigval)[::-1]
@@ -86,7 +89,7 @@ class DictionaryGenerator(BaseEstimator):
         return means, covars
     
     def build_normal_distributions(self, mean, covar):
-        return multivariate_normal(mean, covar)
+        return multivariate_normal(mean, covar, allow_singular=True)
     
     def fit(self, X):
         self.densities = []
@@ -94,7 +97,10 @@ class DictionaryGenerator(BaseEstimator):
         eigval, eigvect =  np.linalg.eig(1./X.shape[0]*X.T.dot(X))
         self.pca = PCA(self.p)
         X_pca = self.extract_principal_components(X)
-        selected_eigvals = self.select_eigvals(eigval)[1]
+        if self.pc_select:
+            selected_eigvals = self.select_eigvals(eigval)[1]
+        else:
+            selected_eigvals = range(self.p)
         if self.verbose:
             print "Selected eigenvalues: ", selected_eigvals
         X2 = X[:, selected_eigvals]
@@ -103,4 +109,23 @@ class DictionaryGenerator(BaseEstimator):
     
     def fit_transform(self, X):
         self.fit(X)
-        return [item for sublist in self.densities for item in sublist]
+        self.densities_flatten = [item for sublist in self.densities for item in sublist]
+        return self.densities_flatten
+
+    def simplify_gof(self):
+        """
+        Perform the goodness-of-fit test from tools, and return a smaller densities list.
+        """
+        if hasattr(self, 'densities'):
+            self.densities_flatten = [item for sublist in self.densities for item in sublist]
+            densities_gof_simplified = deepcopy(self.densities_flatten)
+            for i in range(len(densities_gof_simplified)):
+                for j in range(i, len(densities_gof_simplified)):
+                    if densities_gof_simplified[j]!= None and densities_gof_simplified[i]!= None:
+                        if len(goodness_fit_densities([densities_gof_simplified[i], densities_gof_simplified[j]])) == 1 and i!=j:
+                            densities_gof_simplified[j]=None
+            return [d for d in densities_gof_simplified if d!= None]
+        else:
+            print "Execute fit_transform before."
+            return None
+    

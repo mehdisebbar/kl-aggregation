@@ -5,9 +5,8 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 TYPE_DENSITIES_LIST = ['uniform', 'rect', 'gauss', 'lapl_gauss','lapl_gauss_not_dict'] 
 
-def plot_1graph_loss(df, type_dens, metric, file_complement):
-    plt.figure(figsize=(10,5))
-    boxplot = sns.boxplot(x="method", y="Loss", hue="N", data=df[(df.metric==metric) & (df.type_dens==type_dens)],
+def plot_1graph_loss(df, type_dens, metric, file_complement):uhhu7uuyyuuuu
+kjji    boxplot = sns.boxplot(x="method", y="Loss", hue="N", data=df[(df.metric==metric) & (df.type_dens==type_dens)],
                          palette=["#ff6666", "#ffd966", "#b3ff66"])
     for patch in boxplot.artists:
         r, g, b, a = patch.get_facecolor()
