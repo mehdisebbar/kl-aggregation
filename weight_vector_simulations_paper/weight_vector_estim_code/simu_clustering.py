@@ -259,10 +259,10 @@ def simu(N, K, dim, gof_test= True, pc_select = True):
         kl_aggreg_density = KLaggDensity(kl_aggreg_weights, densities_dict)
         #Compute L2 loss
         kl_aggreg_integrand_L2_loss = IntegrandL2Density(f_star.pdf, kl_aggreg_density.pdf)
-        kl_aggreg_l2 = l2_norm(kl_aggreg_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE)
+        kl_aggreg_l2 = l2_norm(kl_aggreg_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)
         #Compute KL loss
         kl_aggreg_integrand_KL_loss = IntegrandKLDensity(f_star.pdf, kl_aggreg_density.pdf)
-        kl_aggreg_kl = kl_norm(kl_aggreg_integrand_KL_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE)
+        kl_aggreg_kl = kl_norm(kl_aggreg_integrand_KL_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)
         #################
         #EM-BIC ALGORITHM
         #################
@@ -272,10 +272,10 @@ def simu(N, K, dim, gof_test= True, pc_select = True):
         em_density = GaussMixtureDensity(em_model.weights_, em_model.means_, em_model.covariances_)
         #Compute L2 loss
         em_integrand_L2_loss = IntegrandL2Density(f_star.pdf, em_density.pdf)
-        em_l2 = l2_norm(em_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE)
+        em_l2 = l2_norm(em_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)
         #Compute KL loss
         em_integrand_KL_loss = IntegrandKLDensity(f_star.pdf, em_density.pdf)
-        em_kl = kl_norm(em_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE)
+        em_kl = kl_norm(em_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE,  hypercube_size=10)
         #################
         #KDE-CV ALGORITHM
         #################
@@ -284,9 +284,9 @@ def simu(N, K, dim, gof_test= True, pc_select = True):
         kde.fit(X)
         time_kde_stop = time()
         kde_integrand_KL_loss = IntegrandKLDensity(f_star.pdf, kde.pdf)
-        kde_kl = kl_norm(kde_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE)   
+        kde_kl = kl_norm(kde_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE,  hypercube_size=10)   
         kde_integrand_L2_loss = IntegrandL2Density(f_star.pdf, kde.pdf)
-        kde_l2 = l2_norm(kde_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE)  
+        kde_l2 = l2_norm(kde_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)  
         #Compute times
         kl_aggreg_time = time_kl_aggreg_stop-time_kl_aggreg_start
         em_bic_time = time_em_stop-time_em_start
