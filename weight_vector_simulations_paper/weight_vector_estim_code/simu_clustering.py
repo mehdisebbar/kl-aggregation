@@ -306,11 +306,21 @@ def simu(N, K, dim, gof_test= True, pc_select = True):
                      "KdeCV_KL" : kde_kl,
                      "KdeCV_time" : kde_cv_time
                  }, open(FOLDER +
-                         "res_" + "K" + str(K) + "p" + str(dim) + "N" + str(N) +"_"+ str(uuid.uuid4()), "wb"))
+                         "res_" + "K" + str(K) + "p" + str(dim) + "N" + str(N) +"_"+ type_simu_to_str(gof_test, pc_select)+"_"+str(uuid.uuid4()), "wb"))
         return 1
     except Exception as e:
         print e
         return 0
+def type_simu_to_str(gof,pc):
+    if gof:
+        s1 = "gof"
+    else:
+        s1 = ""
+    if pc:
+        s2 = "pc"
+    else:
+        s2 = ""
+    return s1+"_"+s2
 
 
 if __name__ == "__main__":
@@ -342,11 +352,43 @@ if __name__ == "__main__":
 #           p.join()        
     for dim in [3, 4, 5]:
         for N in [100, 500, 1000]:
-            p = Pool(processes=8) 
+            ##########################
+            #gof = false, pc = false
+            p = Pool(processes=5) 
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, gof_test = False, pc_select = False)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
-            p.join() 
+            p.join()
+            ##########################
+            #gof = true, pc = false
+            p = Pool(processes=5) 
+            i=0
+            #We send a batch of 20 tasks
+            while i <=100:
+                res = [p.apply_async(simu, args=(N, 4, dim, gof_test = True, pc_select = False)) for _ in range(20)]
+                i += sum([r.get() for r in res])
+            p.close()
+            p.join()
+            ##########################
+            #gof = false, pc = true
+            p = Pool(processes=5) 
+            i=0
+            #We send a batch of 20 tasks
+            while i <=100:
+                res = [p.apply_async(simu, args=(N, 4, dim, gof_test = False, pc_select = True)) for _ in range(20)]
+                i += sum([r.get() for r in res])
+            p.close()
+            p.join()  
+            ##########################       
+            #gof = true, pc = true
+            p = Pool(processes=5) 
+            i=0
+            #We send a batch of 20 tasks
+            while i <=100:
+                res = [p.apply_async(simu, args=(N, 4, dim, gof_test = True, pc_select = True)) for _ in range(20)]
+                i += sum([r.get() for r in res])
+            p.close()
+            p.join()   
