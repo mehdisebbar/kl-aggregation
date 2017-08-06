@@ -358,7 +358,7 @@ if __name__ == "__main__":
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, gof_test = False, pc_select = False)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, False, False)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
             p.join()
@@ -368,7 +368,7 @@ if __name__ == "__main__":
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, gof_test = True, pc_select = False)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, True, False)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
             p.join()
@@ -378,7 +378,7 @@ if __name__ == "__main__":
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, gof_test = False, pc_select = True)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, False, True)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
             p.join()  
@@ -388,7 +388,7 @@ if __name__ == "__main__":
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, gof_test = True, pc_select = True)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, True, True)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
             p.join()   
