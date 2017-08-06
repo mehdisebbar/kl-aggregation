@@ -107,12 +107,6 @@ class GaussianMixtureGen(object):
         return mixture.propose(N)
         
 def l2_norm(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
-    return importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercube_size = 3)
-
-def kl_norm(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
-    return importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercube_size = 3)
-
-def importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
     """
     Compute the L2 norm of f-g using importance sampling
     with sample_size samples drawn from a gaussian mixture f_sample from pypmc
@@ -130,6 +124,44 @@ def importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercu
     sampler.run(sample_size)
     samples = sampler.samples
     return np.sqrt(1./sample_size*np.apply_along_axis(f_over_g, 1, samples[0]).sum())
+
+def kl_norm(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
+    """
+    Compute the KL norm KL(f,g) using importance sampling
+    with sample_size samples drawn from a gaussian mixture f_sample from pypmc
+    input : 
+    f_over_g : the integrand log(f/g) with f real density and g estimator of density,
+               input is the pdf.
+    f_sample : sampling distrib f* known, type pypmc density mixture
+    """
+    # define indicator
+    dim = f_sample.dim
+    ind_lower = [-hypercube_size for _ in range(dim)]
+    ind_upper = [hypercube_size for _ in range(dim)]
+    ind = hyperrectangle(ind_lower, ind_upper)
+    sampler = ImportanceSampler(f_sample.evaluate, f_sample, ind)
+    sampler.run(sample_size)
+    samples = sampler.samples
+    return 1./sample_size*np.apply_along_axis(f_over_g, 1, samples[0]).sum()
+
+#def importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
+#    """
+#    Compute the L2 norm of f-g using importance sampling
+#    with sample_size samples drawn from a gaussian mixture f_sample from pypmc
+#    input : 
+#    f_over_g : the integrand (1-g/f)^2*f with f real density and g estimator of density,
+#               input is the pdf.
+#    f_sample : sampling distrib f* known, type pypmc density mixture
+#    """
+#    # define indicator
+#    dim = f_sample.dim
+#    ind_lower = [-hypercube_size for _ in range(dim)]
+#    ind_upper = [hypercube_size for _ in range(dim)]
+#    ind = hyperrectangle(ind_lower, ind_upper)
+#    sampler = ImportanceSampler(f_sample.evaluate, f_sample, ind)
+#    sampler.run(sample_size)
+#    samples = sampler.samples
+#    return np.sqrt(1./sample_size*np.apply_along_axis(f_over_g, 1, samples[0]).sum())
 
 class uniform_nonzero(object):
     """
