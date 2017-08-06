@@ -106,7 +106,7 @@ class GaussianMixtureGen(object):
         mixture = create_gaussian_mixture(self.centers, self.cov, self.weights)
         return mixture.propose(N)
         
-def l2_norm(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
+def l2_norm(f_over_g, f_sample, sample_size=100000, hypercube_size = 3):
     """
     Compute the L2 norm of f-g using importance sampling
     with sample_size samples drawn from a gaussian mixture f_sample from pypmc
@@ -125,7 +125,7 @@ def l2_norm(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
     samples = sampler.samples
     return np.sqrt(1./sample_size*np.apply_along_axis(f_over_g, 1, samples[0]).sum())
 
-def kl_norm(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
+def kl_norm(f_over_g, f_sample, sample_size=100000, hypercube_size = 3):
     """
     Compute the KL norm KL(f,g) using importance sampling
     with sample_size samples drawn from a gaussian mixture f_sample from pypmc
