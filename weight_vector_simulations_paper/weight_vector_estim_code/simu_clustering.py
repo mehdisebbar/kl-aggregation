@@ -12,7 +12,7 @@ from densitiesGenerator import  DensityGenerator
 from algorithm import WeightEstimator
 from dictionary_generator import DictionaryGenerator
 from pypmc.density.mixture import create_gaussian_mixture
-
+from numpy.random import seed
 
 """
 We compare the KL-aggregation density estimator with the EM-BIC density estimator
@@ -222,6 +222,8 @@ class BasicGenD3(object):
         return self.means, self.covs
 
 def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verbose = False):
+    #reset the random generator, useful for multiprocess 
+    seed()
     try:
         if verbose:
             print "init N=",N," dim=",dim
@@ -363,7 +365,6 @@ def type_simu_to_str(gof,pc):
 
 
 if __name__ == "__main__":
-    print FOLDER
 #    simu_list = [
 #        (2,2,100),
 #        (4,2,100),
@@ -397,7 +398,7 @@ if __name__ == "__main__":
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, False, False)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, False, False, True, True)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
             p.join()
@@ -407,7 +408,7 @@ if __name__ == "__main__":
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, True, True)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, True, True, True, True)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
             p.join()   
