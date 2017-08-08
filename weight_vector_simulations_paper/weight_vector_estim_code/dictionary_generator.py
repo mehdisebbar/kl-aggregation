@@ -122,6 +122,8 @@ class DictionaryGenerator(BaseEstimator):
             for i in range(len(densities_gof_simplified)):
                 for j in range(i, len(densities_gof_simplified)):
                     if densities_gof_simplified[j]!= None and densities_gof_simplified[i]!= None:
+                        #we call goodness_fit_densities() here, returns a  list of unique densities according
+                        #to the test
                         if len(goodness_fit_densities([densities_gof_simplified[i], densities_gof_simplified[j]])) == 1 and i!=j:
                             densities_gof_simplified[j]=None
             return [d for d in densities_gof_simplified if d!= None]

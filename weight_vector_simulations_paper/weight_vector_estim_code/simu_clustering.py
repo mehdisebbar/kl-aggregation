@@ -26,9 +26,9 @@ recorded.
 """
 
 N_PDF = 10000
-KMEANS_K = 5
+KMEANS_K = 10
 MAX_COMPONENTS_MLE_BIC = 20
-SAMPLE_SIZE = 10000
+SAMPLE_SIZE = 5000
 MAX_EM_BIC_K = 20
 FOLDER = "dg_"+str(datetime.now()).split(".")[0].replace(" ", "_").replace(":", ".") + "/"
 os.makedirs(FOLDER)
@@ -221,10 +221,12 @@ class BasicGenD3(object):
     def get_params(self):
         return self.means, self.covs
 
-def simu(N, K, dim, gof_test= True, pc_select = True):
+def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verbose = False):
     try:
+        if verbose:
+            print "init N=",N," dim=",dim
         #Some initialization
-        sc = StandardScaler()
+        #sc = StandardScaler()
         max_pca_comp = dim/2+1
         # We generate the Gaussian mixture
         #gg = GaussianMixtureGen(dim, weights)
@@ -238,15 +240,20 @@ def simu(N, K, dim, gof_test= True, pc_select = True):
         K = len(set(ids))
         weights = 1./K*np.ones(K)
         #We normalize the data for the PCA in the KL aggreg
-        X = sc.fit_transform(X_)
+        #X = sc.fit_transform(X_)
+        X = X_
         #We generate the target density f_star from the components
         f_star = GaussMixtureDensity(weights, centers_star, cov_star)
         f_star_sampling = create_gaussian_mixture(centers_star, cov_star, weights)
         ######################
         # KL-AGGREG. ALGORITHM
         ######################
+        if verbose:
+            print "starting KL-aggreg"
         time_kl_aggreg_start = time()
         dg = DictionaryGenerator(kmeans_k=KMEANS_K, max_pca_comp=max_pca_comp, subspace_cluster_dim=2, pc_select=pc_select)
+        X_train_dict_gen = X[:N/2]
+        X_train_kl_aggreg = X[N/2:] 
         if gof_test:
             dg.fit(X)
             densities_dict = dg.simplify_gof()
@@ -263,9 +270,15 @@ def simu(N, K, dim, gof_test= True, pc_select = True):
         #Compute KL loss
         kl_aggreg_integrand_KL_loss = IntegrandKLDensity(f_star.pdf, kl_aggreg_density.pdf)
         kl_aggreg_kl = kl_norm(kl_aggreg_integrand_KL_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)
+        if verbose:
+            print "KL-aggreg done"
+            print "KL-loss", kl_aggreg_kl
+            print "L2-loss", kl_aggreg_l2
         #################
         #EM-BIC ALGORITHM
         #################
+        if verbose:
+            print "starting EM-BIC"
         time_em_start = time()
         _, em_model = mle_bic(X, MAX_EM_BIC_K)
         time_em_stop = time()
@@ -276,9 +289,15 @@ def simu(N, K, dim, gof_test= True, pc_select = True):
         #Compute KL loss
         em_integrand_KL_loss = IntegrandKLDensity(f_star.pdf, em_density.pdf)
         em_kl = kl_norm(em_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE,  hypercube_size=10)
+        if verbose:
+            print "EM-BIC done"
+            print "KL-loss", em_kl
+            print "L2-loss", em_l2
         #################
         #KDE-CV ALGORITHM
         #################
+        if verbose:
+            print "starting KDE-CV"
         kde = KdeCV(n_jobs = 1, cv=10, bw = np.linspace(0.01, 1.0, 20))
         time_kde_start = time()
         kde.fit(X)
@@ -291,22 +310,42 @@ def simu(N, K, dim, gof_test= True, pc_select = True):
         kl_aggreg_time = time_kl_aggreg_stop-time_kl_aggreg_start
         em_bic_time = time_em_stop-time_em_start
         kde_cv_time = time_kde_stop-time_kde_start
+        if verbose:
+            print "KDE-CV done"
+            print "KL-loss", kde_kl
+            print "L2-loss", kde_l2
         #Writing results
-        print "OK, writing results"
-        pickle.dump({"K" : K,
-                     "p" : dim,
-                     "N" : N,
-                     "MLE_l2" : kl_aggreg_l2,
-                     "MLE_KL" : kl_aggreg_kl,
-                     "MLE_time" : kl_aggreg_time,
-                     "EM_l2" : em_l2,
-                     "EM_KL" : em_kl,
-                     "EM_time" : em_bic_time,
-                     "KdeCV_l2" : kde_l2,
-                     "KdeCV_KL" : kde_kl,
-                     "KdeCV_time" : kde_cv_time
-                 }, open(FOLDER +
-                         "res_" + "K" + str(K) + "p" + str(dim) + "N" + str(N) +"_"+ type_simu_to_str(gof_test, pc_select)+"_"+str(uuid.uuid4()), "wb"))
+        if write_results:
+            print "OK, writing results"
+            pickle.dump({"K" : K,
+                         "p" : dim,
+                         "N" : N,
+                         "MLE_l2" : kl_aggreg_l2,
+                         "MLE_KL" : kl_aggreg_kl,
+                         "MLE_time" : kl_aggreg_time,
+                         "EM_l2" : em_l2,
+                         "EM_KL" : em_kl,
+                         "EM_time" : em_bic_time,
+                         "KdeCV_l2" : kde_l2,
+                         "KdeCV_KL" : kde_kl,
+                         "KdeCV_time" : kde_cv_time
+                     }, open(FOLDER +
+                             "res_" + "K" + str(K) + "p" + str(dim) + "N" + str(N) +"_"+ type_simu_to_str(gof_test, pc_select)+"_"+str(uuid.uuid4()), "wb"))
+        else:
+            # we print the results, for testing.
+            print {"K" : K,
+                         "p" : dim,
+                         "N" : N,
+                         "MLE_l2" : kl_aggreg_l2,
+                         "MLE_KL" : kl_aggreg_kl,
+                         "MLE_time" : kl_aggreg_time,
+                         "EM_l2" : em_l2,
+                         "EM_KL" : em_kl,
+                         "EM_time" : em_bic_time,
+                         "KdeCV_l2" : kde_l2,
+                         "KdeCV_KL" : kde_kl,
+                         "KdeCV_time" : kde_cv_time
+                     }
         return 1
     except Exception as e:
         print e
@@ -351,10 +390,10 @@ if __name__ == "__main__":
 #           p.close()
 #           p.join()        
     for dim in [3, 4, 5]:
-        for N in [100, 500, 1000]:
+        for N in [200, 500, 1000, 5000]:
             ##########################
             #gof = false, pc = false
-            p = Pool(processes=5) 
+            p = Pool(processes=6) 
             i=0
             #We send a batch of 20 tasks
             while i <=100:
@@ -362,29 +401,9 @@ if __name__ == "__main__":
                 i += sum([r.get() for r in res])
             p.close()
             p.join()
-            ##########################
-            #gof = true, pc = false
-            p = Pool(processes=5) 
-            i=0
-            #We send a batch of 20 tasks
-            while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, True, False)) for _ in range(20)]
-                i += sum([r.get() for r in res])
-            p.close()
-            p.join()
-            ##########################
-            #gof = false, pc = true
-            p = Pool(processes=5) 
-            i=0
-            #We send a batch of 20 tasks
-            while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, False, True)) for _ in range(20)]
-                i += sum([r.get() for r in res])
-            p.close()
-            p.join()  
             ##########################       
             #gof = true, pc = true
-            p = Pool(processes=5) 
+            p = Pool(processes=6) 
             i=0
             #We send a batch of 20 tasks
             while i <=100:

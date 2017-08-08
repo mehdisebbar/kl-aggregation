@@ -175,7 +175,7 @@ class uniform_nonzero(object):
 
 def goodness_fit_densities(densities_list, SAMPLE_SIZE=100):
     """
-    Multidimensional Goodness-of-fit from: On Multivariate Goodness–of–Fit and Two–Sample Testing
+    'Multidimensional Goodness-of-fit from: On Multivariate Goodness–of–Fit and Two–Sample Testing'
     from Jerome H. Friedman. Performs a gof test on all combinations of 2 densities. 
     Transform the problem to a binary classification problem and a Kolmogorov-Smirnov test.
     input : a list of densities, some might be the same
@@ -186,18 +186,21 @@ def goodness_fit_densities(densities_list, SAMPLE_SIZE=100):
         s = 0
         #This might not be statistically correct, but helps to stabiliize the result
         for _ in range(10):
-            X1 = np.hstack([d1.rvs(SAMPLE_SIZE), np.ones(SAMPLE_SIZE).reshape(-1,1), np.arange(SAMPLE_SIZE).reshape(-1,1)])
-            X2 = np.hstack([d2.rvs(SAMPLE_SIZE), -np.ones(SAMPLE_SIZE).reshape(-1,1), np.arange(SAMPLE_SIZE, 2*SAMPLE_SIZE).reshape(-1,1)])
+            X1 = np.hstack([d1.rvs(2*SAMPLE_SIZE), np.ones(2*SAMPLE_SIZE).reshape(-1,1), np.arange(2*SAMPLE_SIZE).reshape(-1,1)])
+            X2 = np.hstack([d2.rvs(2*SAMPLE_SIZE), -np.ones(2*SAMPLE_SIZE).reshape(-1,1), np.arange(2*SAMPLE_SIZE, 4*SAMPLE_SIZE).reshape(-1,1)])
             X = np.vstack([X1, X2])
             np.random.shuffle(X)
             indexes = X[:,-1]
             X = X[:,:-1]
+            X_train = X[:SAMPLE_SIZE]
+            X_test = X[SAMPLE_SIZE:2*SAMPLE_SIZE]
+            indexes_test = X_test[:,-1]
             clf = LogisticRegression()
             #clf = RandomForestClassifier(max_depth=5, n_estimators=20)
-            clf.fit(X[:,:-1], X[:,-1])
-            scores = clf.predict_proba(X[:,:-1])
-            s_plus = scores[indexes < SAMPLE_SIZE][:,0]
-            s_min = scores[indexes >= SAMPLE_SIZE][:,0]
+            clf.fit(X_train[:,:-1], X_train[:,-1])
+            scores = clf.predict_proba(X_test[:,:-1])
+            s_plus = scores[indexes_test < SAMPLE_SIZE][:,0]
+            s_min = scores[indexes_test >= SAMPLE_SIZE][:,0]
             a = ks_2samp(s_plus, s_min)
             if a.pvalue > 0.3:
                 s+=1
