@@ -229,7 +229,7 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
         if verbose:
             print "init N=",N," dim=",dim
         #Some initialization
-        #sc = StandardScaler()
+        sc = StandardScaler()
         max_pca_comp = dim/2+1
         # We generate the Gaussian mixture
         #gg = GaussianMixtureGen(dim, weights)
@@ -243,8 +243,8 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
         K = len(set(ids))
         weights = 1./K*np.ones(K)
         #We normalize the data for the PCA in the KL aggreg
-        #X = sc.fit_transform(X_)
-        X = X_
+        X = sc.fit_transform(X_)
+        #X = X_
         #We generate the target density f_star from the components
         f_star = GaussMixtureDensity(weights, centers_star, cov_star)
         f_star_sampling = create_gaussian_mixture(centers_star, cov_star, weights)
