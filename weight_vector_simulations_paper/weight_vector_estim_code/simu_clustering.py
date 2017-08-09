@@ -27,9 +27,10 @@ recorded.
 
 N_PDF = 10000
 KMEANS_K = 10
-MAX_COMPONENTS_MLE_BIC = 20
+MAX_COMPONENTS_MLE_BIC = 10
 SAMPLE_SIZE = 5000
 MAX_EM_BIC_K = 20
+N_JOBS = 8
 FOLDER = "dg_"+str(datetime.now()).split(".")[0].replace(" ", "_").replace(":", ".") + "/"
 os.makedirs(FOLDER)
 
@@ -365,6 +366,7 @@ def type_simu_to_str(gof,pc):
 
 
 if __name__ == "__main__":
+    print FOLDER
 #    simu_list = [
 #        (2,2,100),
 #        (4,2,100),
@@ -390,25 +392,25 @@ if __name__ == "__main__":
 #               i += sum([r.get() for r in res])
 #           p.close()
 #           p.join()        
-    for dim in [3, 4, 5]:
+    for dim in [5]:
         for N in [200, 500, 1000, 5000]:
             ##########################
             #gof = false, pc = false
-            p = Pool(processes=6) 
+            p = Pool(processes=N_JOBS) 
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, False, False, True, True)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, False, False, True, False)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
             p.join()
             ##########################       
             #gof = true, pc = true
-            p = Pool(processes=6) 
+            p = Pool(processes=N_JOBS) 
             i=0
             #We send a batch of 20 tasks
             while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, True, True, True, True)) for _ in range(20)]
+                res = [p.apply_async(simu, args=(N, 4, dim, True, True, True, False)) for _ in range(20)]
                 i += sum([r.get() for r in res])
             p.close()
             p.join()   
