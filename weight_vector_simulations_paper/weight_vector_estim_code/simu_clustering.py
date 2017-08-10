@@ -31,38 +31,39 @@ MAX_COMPONENTS_MLE_BIC = 10
 SAMPLE_SIZE = 5000
 MAX_EM_BIC_K = 20
 N_JOBS = 8
+HYPERCUBE_SIZE = 3
 FOLDER = "dg_"+str(datetime.now()).split(".")[0].replace(" ", "_").replace(":", ".") + "/"
 os.makedirs(FOLDER)
 
-def goodness_fit_densities(densities_list, SAMPLE_SIZE=100):
-    new_dens = []
-    for d1, d2 in list(itertools.combinations(densities_list, 2)):
-        s = 0
-        #This might not be statistically correct, but helps to smooth the result, it 
-        for _ in range(10):
-            X1 = np.hstack([d1.rvs(SAMPLE_SIZE), np.ones(SAMPLE_SIZE).reshape(-1,1), np.arange(SAMPLE_SIZE).reshape(-1,1)])
-            X2 = np.hstack([d2.rvs(SAMPLE_SIZE), -np.ones(SAMPLE_SIZE).reshape(-1,1), np.arange(SAMPLE_SIZE, 2*SAMPLE_SIZE).reshape(-1,1)])
-            X = np.vstack([X1, X2])
-            np.random.shuffle(X)
-            indexes = X[:,-1]
-            X = X[:,:-1]
-            clf = LogisticRegression()
-            #clf = RandomForestClassifier(max_depth=5, n_estimators=20)
-            clf.fit(X[:,:-1], X[:,-1])
-            scores = clf.predict_proba(X[:,:-1])
-            s_plus = scores[indexes < SAMPLE_SIZE][:,0]
-            s_min = scores[indexes >= SAMPLE_SIZE][:,0]
-            a = ks_2samp(s_plus, s_min)
-            if a.pvalue > 0.05:
-                s+=1
-        if s > 0.5 and d1 not in new_dens:
-            new_dens.append(d1)
-        else:
-            if d1 not in new_dens:
-                new_dens.append(d1)
-            if d2 not in new_dens:
-                new_dens.append(d2)
-    return new_dens
+#def goodness_fit_densities(densities_list, SAMPLE_SIZE=100):
+#    new_dens = []
+#    for d1, d2 in list(itertools.combinations(densities_list, 2)):
+#        s = 0
+#        #This might not be statistically correct, but helps to smooth the result, it 
+#        for _ in range(10):
+#            X1 = np.hstack([d1.rvs(SAMPLE_SIZE), np.ones(SAMPLE_SIZE).reshape(-1,1), np.arange(SAMPLE_SIZE).reshape(-1,1)])
+#            X2 = np.hstack([d2.rvs(SAMPLE_SIZE), -np.ones(SAMPLE_SIZE).reshape(-1,1), np.arange(SAMPLE_SIZE, 2*SAMPLE_SIZE).reshape(-1,1)])
+#            X = np.vstack([X1, X2])
+#            np.random.shuffle(X)
+#            indexes = X[:,-1]
+#            X = X[:,:-1]
+#            clf = LogisticRegression()
+#            #clf = RandomForestClassifier(max_depth=5, n_estimators=20)
+#            clf.fit(X[:,:-1], X[:,-1])
+#            scores = clf.predict_proba(X[:,:-1])
+#            s_plus = scores[indexes < SAMPLE_SIZE][:,0]
+#            s_min = scores[indexes >= SAMPLE_SIZE][:,0]
+#            a = ks_2samp(s_plus, s_min)
+#            if a.pvalue > 0.05:
+#                s+=1
+#        if s > 0.5 and d1 not in new_dens:
+#            new_dens.append(d1)
+#        else:
+#            if d1 not in new_dens:
+#                new_dens.append(d1)
+#            if d2 not in new_dens:
+#                new_dens.append(d2)
+#    return new_dens
 
 class KLaggDensity(object):
     """
@@ -186,42 +187,6 @@ class BasicGen(object):
         np.random.shuffle(X)
         return X
 
-class BasicGenD3(object):
-    #Only dim 3
-    def __init__(self, dim):
-        self.covs = 1e-3*np.array([
-            np.array([[10, 0, 3],
-                      [0, 0.1, 0],
-                      [3, 0, 1]]),
-                  
-            np.array([[0.1,0,0],
-                      [0, 2 ,-4],
-                      [0, -4, 10]]),
-                  
-            np.array([[0.1, 0.3, 0],
-                      [0.3, 20, 0],
-                      [0, 0, 0.5]]),
-            ])
-        self.means = [
-            np.array([0.1, 0.1, 0.1]),
-            np.array([0.1, 0.8 , 0.8]),
-            np.array([0.6, 0.2, 0.8]),
-            ]
-    def sample(self, N, with_ids = False):
-        X = multivariate_normal(self.means[0], self.covs[0]).rvs(N/3)
-        ids = np.ones(N/3)
-        X = np.vstack([X, multivariate_normal(self.means[1], self.covs[1]).rvs(N/3)])
-        ids = np.hstack([ids, 2*np.ones(N/3)])
-        X = np.vstack([X, multivariate_normal(self.means[2], self.covs[2]).rvs(N/3)])
-        ids = np.hstack([ids, 3*np.ones(N/3)])
-        if with_ids:
-            X = np.hstack([X, ids.reshape(-1,1)])
-        np.random.shuffle(X)
-        return X
-
-    def get_params(self):
-        return self.means, self.covs
-
 def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verbose = False):
     #reset the random generator, useful for multiprocess 
     seed()
@@ -229,7 +194,7 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
         if verbose:
             print "init N=",N," dim=",dim
         #Some initialization
-        sc = StandardScaler()
+        #sc = StandardScaler()
         max_pca_comp = dim/2+1
         # We generate the Gaussian mixture
         #gg = GaussianMixtureGen(dim, weights)
@@ -243,8 +208,8 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
         K = len(set(ids))
         weights = 1./K*np.ones(K)
         #We normalize the data for the PCA in the KL aggreg
-        X = sc.fit_transform(X_)
-        #X = X_
+        #X = sc.fit_transform(X_)
+        X = X_
         #We generate the target density f_star from the components
         f_star = GaussMixtureDensity(weights, centers_star, cov_star)
         f_star_sampling = create_gaussian_mixture(centers_star, cov_star, weights)
@@ -269,10 +234,10 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
         kl_aggreg_density = KLaggDensity(kl_aggreg_weights, densities_dict)
         #Compute L2 loss
         kl_aggreg_integrand_L2_loss = IntegrandL2Density(f_star.pdf, kl_aggreg_density.pdf)
-        kl_aggreg_l2 = l2_norm(kl_aggreg_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)
+        kl_aggreg_l2 = l2_norm(kl_aggreg_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=HYPERCUBE_SIZE)
         #Compute KL loss
         kl_aggreg_integrand_KL_loss = IntegrandKLDensity(f_star.pdf, kl_aggreg_density.pdf)
-        kl_aggreg_kl = kl_norm(kl_aggreg_integrand_KL_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)
+        kl_aggreg_kl = kl_norm(kl_aggreg_integrand_KL_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=HYPERCUBE_SIZE)
         if verbose:
             print "KL-aggreg done"
             print "KL-loss", kl_aggreg_kl
@@ -288,10 +253,10 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
         em_density = GaussMixtureDensity(em_model.weights_, em_model.means_, em_model.covariances_)
         #Compute L2 loss
         em_integrand_L2_loss = IntegrandL2Density(f_star.pdf, em_density.pdf)
-        em_l2 = l2_norm(em_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)
+        em_l2 = l2_norm(em_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=HYPERCUBE_SIZE)
         #Compute KL loss
         em_integrand_KL_loss = IntegrandKLDensity(f_star.pdf, em_density.pdf)
-        em_kl = kl_norm(em_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE,  hypercube_size=10)
+        em_kl = kl_norm(em_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE,  hypercube_size=HYPERCUBE_SIZE)
         if verbose:
             print "EM-BIC done"
             print "KL-loss", em_kl
@@ -306,9 +271,9 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
         kde.fit(X)
         time_kde_stop = time()
         kde_integrand_KL_loss = IntegrandKLDensity(f_star.pdf, kde.pdf)
-        kde_kl = kl_norm(kde_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE,  hypercube_size=10)   
+        kde_kl = kl_norm(kde_integrand_KL_loss.pdf, f_star_sampling, sample_size = SAMPLE_SIZE,  hypercube_size=HYPERCUBE_SIZE)   
         kde_integrand_L2_loss = IntegrandL2Density(f_star.pdf, kde.pdf)
-        kde_l2 = l2_norm(kde_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=10)  
+        kde_l2 = l2_norm(kde_integrand_L2_loss.pdf, f_star_sampling, sample_size=SAMPLE_SIZE,  hypercube_size=HYPERCUBE_SIZE)  
         #Compute times
         kl_aggreg_time = time_kl_aggreg_stop-time_kl_aggreg_start
         em_bic_time = time_em_stop-time_em_start
@@ -392,7 +357,7 @@ if __name__ == "__main__":
 #               i += sum([r.get() for r in res])
 #           p.close()
 #           p.join()        
-    for dim in [5]:
+    for dim in [3, 4, 5]:
         for N in [200, 500, 1000, 5000]:
             ##########################
             #gof = false, pc = false
