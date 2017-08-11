@@ -379,6 +379,7 @@ if __name__ == "__main__":
             for dim in dim_list:
                 for N in N_list:        
                     simu(N, 4, dim, False, False, True, True)
+                    simu(N, 4, dim, True, True, True, True)
             
 #    simu_list = [
 #        (2,2,100),
