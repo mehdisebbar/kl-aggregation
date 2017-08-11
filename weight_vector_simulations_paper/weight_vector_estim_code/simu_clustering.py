@@ -28,7 +28,7 @@ recorded.
 N_PDF = 10000
 KMEANS_K = 10
 MAX_COMPONENTS_MLE_BIC = 10
-SAMPLE_SIZE = 5000
+SAMPLE_SIZE = 10000
 MAX_EM_BIC_K = 20
 N_JOBS = 8
 HYPERCUBE_SIZE = 3
@@ -330,8 +330,56 @@ def type_simu_to_str(gof,pc):
     return s1+"_"+s2
 
 
+def multiprocess_code(N_list, dim_list):     
+    for dim in dim_list:
+        for N in N_list:
+            ##########################
+            #gof = false, pc = false
+            p = Pool(processes=N_JOBS) 
+            i=0
+            #We send a batch of 20 tasks
+            while i <=100:
+                res = [p.apply_async(simu, args=(N, 4, dim, False, False, True, True)) for _ in range(20)]
+                i += sum([r.get() for r in res])
+            p.close()
+            p.join()
+            ##########################       
+            #gof = true, pc = true
+            p = Pool(processes=N_JOBS) 
+            i=0
+            #We send a batch of 20 tasks
+            while i <=100:
+                res = [p.apply_async(simu, args=(N, 4, dim, True, True, True, True)) for _ in range(20)]
+                i += sum([r.get() for r in res])
+            p.close()
+            p.join()   
+
+
+
 if __name__ == "__main__":
     print FOLDER
+    import argparse
+    # Instantiate the parser
+    parser = argparse.ArgumentParser(description='Optional app description')
+    parser.add_argument('N', type=str,
+                    help='N')
+    # Optional positional argument
+    parser.add_argument('dim', type=str,
+                    help='dimension split with ,')
+    parser.add_argument('mp', type=str,
+                    help='Multiprocessing')
+    args = parser.parse_args()
+    N_list = [int(item) for item in args.N.split(',')]
+    dim_list = [int(item) for item in args.dim.split(',')]
+
+    if args.mp == "True":
+        multiprocess_code(N_list, dim_list)
+    else:
+        for _ in range(200):
+            for dim in dim_list:
+                for N in N_list:        
+                    simu(N, 4, dim, False, False, True, True)
+            
 #    simu_list = [
 #        (2,2,100),
 #        (4,2,100),
@@ -356,26 +404,5 @@ if __name__ == "__main__":
 #               res = [p.apply_async(simu, args=(N, K, dim)) for _ in range(20)]
 #               i += sum([r.get() for r in res])
 #           p.close()
-#           p.join()        
-    for dim in [3, 4, 5]:
-        for N in [200, 500, 1000, 5000]:
-            ##########################
-            #gof = false, pc = false
-            p = Pool(processes=N_JOBS) 
-            i=0
-            #We send a batch of 20 tasks
-            while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, False, False, True, False)) for _ in range(20)]
-                i += sum([r.get() for r in res])
-            p.close()
-            p.join()
-            ##########################       
-            #gof = true, pc = true
-            p = Pool(processes=N_JOBS) 
-            i=0
-            #We send a batch of 20 tasks
-            while i <=100:
-                res = [p.apply_async(simu, args=(N, 4, dim, True, True, True, False)) for _ in range(20)]
-                i += sum([r.get() for r in res])
-            p.close()
-            p.join()   
+#           p.join()   
+# 
