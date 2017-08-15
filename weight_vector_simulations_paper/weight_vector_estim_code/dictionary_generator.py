@@ -25,7 +25,7 @@ class DictionaryGenerator(BaseEstimator):
     subspace_cluster_dim = dimension of subspace spanned by principal comps.
     """
     
-    def __init__(self, max_pca_comp = 2, kmeans_k = 10, subspace_cluster_dim = 2, verbose=False, pc_select = False):
+    def __init__(self, max_pca_comp = 2, kmeans_k = 10, subspace_cluster_dim = 2, verbose=False, pc_select = False, gof = False):
         self.pc_select = pc_select
         self.max_pca_comp = max_pca_comp
         self.kmeans_k = kmeans_k
@@ -33,16 +33,22 @@ class DictionaryGenerator(BaseEstimator):
         self.sc = StandardScaler()
         self.kmeans = KMeans(self.kmeans_k)
         self.verbose = verbose
+        self.gof = gof
+    
+    @staticmethod
+    def tau(beta):
+        #Approximation of singular value threshold from Gavish & Donoho (2014)
+        return 0.56*beta**3 - 0.95*beta**2 + 1.82*beta + 1.43
 
     def select_eigvals(self, eigval):
         #select singular values according to 
-        #"The Optimal Hard Threshold for Singular Values is 4/sqrt(3)",  Matan Gavish and David L. Donoho
+        #"The Optimal Hard Threshold for Singular Values is 4/sqrt(3)",  Matan Gavish and David L. Donoho (2014)
         #returns at least 2 components and their original indexes.
         res = []
         idx_selected = []
         sorted_eigval = sorted(eigval)[::-1]
         for idx, val in enumerate(sorted_eigval):
-            if val > 2.858*np.median(eigval):
+            if val > self.tau(self.beta)*np.median(eigval): #(eq4) from Gavish.Donoho 
                 res.append(val)
                 idx_selected.append(idx)
         #We make sure to return at least 2 components
@@ -51,11 +57,6 @@ class DictionaryGenerator(BaseEstimator):
         if len(res) < 2:
             res=res+sorted_eigval[idx_selected[-1]+1:2]
         return res, [np.argwhere(eigval==e)[0][0] for e in res]
-    
-    def extract_principal_components(self, X):
-        #we rescale the data before PCA
-        X_pca = self.pca.fit_transform(self.sc.fit_transform(X))
-        return X_pca
     
     def get_clusters(self, X2, X, method="em-bic"):
         """
@@ -94,17 +95,19 @@ class DictionaryGenerator(BaseEstimator):
     def fit(self, X):
         self.densities = []
         self.p = X.shape[1]
-        eigval, eigvect =  np.linalg.eig(1./X.shape[0]*X.T.dot(X))
-        self.pca = PCA(self.p)
-        X_pca = self.extract_principal_components(X)
+        #beta for Gavish and Donoho 2014
+        self.beta = X.shape[1]/X.shape[0]
+        X_std = self.sc.fit_transform(X)
         if self.pc_select:
-            selected_eigvals = self.select_eigvals(eigval)[1]
+            _, s, _ = np.linalg.svd(X_std)
+            selected_eigvals = self.select_eigvals(s)[1]
         else:
             selected_eigvals = range(self.p)
         if self.verbose:
             print "Selected eigenvalues: ", selected_eigvals
-        X2 = X[:, selected_eigvals]
-        for components_couple in combinations(range(X2.shape[1]), self.subspace_cluster_dim):
+        self.pca = PCA(len(selected_eigvals))
+        X_pca = self.pca.fit_transform(X_std)
+        for components_couple in combinations(range(X_pca.shape[1]), self.subspace_cluster_dim):
             self.densities.append(self.get_clusters(X[:, components_couple], X))
     
     def fit_transform(self, X):
