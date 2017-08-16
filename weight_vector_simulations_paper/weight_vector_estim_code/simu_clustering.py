@@ -223,12 +223,12 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
         X_train_dict_gen = X[:N/2]
         X_train_kl_aggreg = X[N/2:] 
         if gof_test:
-            dg.fit(X)
+            dg.fit(X_train_dict_gen)
             densities_dict = dg.simplify_gof()
         else:
             densities_dict = dg.fit_transform(X)
         cl = WeightEstimator(densities_dict=densities_dict)
-        cl.fit(X)
+        cl.fit(X_train_kl_aggreg)
         time_kl_aggreg_stop = time()
         kl_aggreg_weights = cl.pi_final
         kl_aggreg_density = KLaggDensity(kl_aggreg_weights, densities_dict)
@@ -365,7 +365,7 @@ if __name__ == "__main__":
                     help='N')
     # Optional positional argument
     parser.add_argument('dim', type=str,
-                    help='dimension split with ,')
+                    help='dimension list')
     parser.add_argument('mp', type=str,
                     help='Multiprocessing')
     args = parser.parse_args()
