@@ -15,7 +15,7 @@ from pypmc.tools.indicator import hyperrectangle
 from pypmc.density.mixture import create_gaussian_mixture
 from sklearn.neighbors import KernelDensity
 from sklearn.grid_search import GridSearchCV
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from scipy.stats import ks_2samp
 
 
@@ -180,35 +180,41 @@ def goodness_fit_densities(densities_list, SAMPLE_SIZE=1000):
     Transform the problem to a binary classification problem and a Kolmogorov-Smirnov test.
     input : a list of densities, some might be the same
     output: a new list of "unique" densities
+    Default level: 0.05
     """
     new_dens = []
+    # Check all combinations
     for d1, d2 in list(combinations(densities_list, 2)):
-        s = 0
-        #This might not be statistically correct, but helps to stabiliize the result
-        for _ in range(5):
-            X1 = np.hstack([d1.rvs(2*SAMPLE_SIZE), np.ones(2*SAMPLE_SIZE).reshape(-1,1), np.arange(2*SAMPLE_SIZE).reshape(-1,1)])
-            X2 = np.hstack([d2.rvs(2*SAMPLE_SIZE), -np.ones(2*SAMPLE_SIZE).reshape(-1,1), np.arange(2*SAMPLE_SIZE, 4*SAMPLE_SIZE).reshape(-1,1)])
-            X = np.vstack([X1, X2])
-            np.random.shuffle(X)
-            indexes = X[:,-1]
-            X = X[:,:-1]
-            X_train = X[:SAMPLE_SIZE]
-            X_test = X[SAMPLE_SIZE:2*SAMPLE_SIZE]
-            indexes_test = X_test[:,-1]
-            clf = LogisticRegression()
-            #clf = RandomForestClassifier(max_depth=5, n_estimators=20)
-            clf.fit(X_train[:,:-1], X_train[:,-1])
-            scores = clf.predict_proba(X_test[:,:-1])
-            s_plus = scores[indexes_test == 1][:,0]
-            s_min = scores[indexes_test == -1][:,0]
-            a = ks_2samp(s_plus, s_min)
-            if a.pvalue > 0.3:
-                s+=1
-        if s > 0.5 and d1 not in new_dens:
+        # No matter what is the outcome of the test, we add the first
+        # density in the list
+        if d1 not in new_dens:
             new_dens.append(d1)
-        else:
-            if d1 not in new_dens:
-                new_dens.append(d1)
-            if d2 not in new_dens:
-                new_dens.append(d2)
+        # We sample from both densities
+        X1 = np.hstack([d1.rvs(2*SAMPLE_SIZE), 
+        np.ones(2*SAMPLE_SIZE).reshape(-1,1), 
+        np.arange(2*SAMPLE_SIZE).reshape(-1,1)])
+        X2 = np.hstack([d2.rvs(2*SAMPLE_SIZE), 
+        -np.ones(2*SAMPLE_SIZE).reshape(-1,1), 
+        np.arange(2*SAMPLE_SIZE, 4*SAMPLE_SIZE).reshape(-1,1)])
+        X = np.vstack([X1, X2])
+        np.random.shuffle(X)
+        indexes = X[:,-1]
+        X = X[:,:-1]
+        # One part will be used for training the binary classifier, 
+        # the second will be used for the Kolmogorov-Smirnov test
+        X_train = X[:SAMPLE_SIZE]
+        X_test = X[SAMPLE_SIZE:2*SAMPLE_SIZE]
+        indexes_test = X_test[:,-1]
+        # Binary classification
+        clf = RandomForestClassifier(max_depth=10, n_estimators=20)
+        clf.fit(X_train[:,:-1], X_train[:,-1])
+        scores = clf.predict_proba(X_test[:,:-1])
+        # recover scores for X1 and X2
+        s_plus = scores[indexes_test == 1][:,0]
+        s_min = scores[indexes_test == -1][:,0]
+        # Kolmogorv-Smirnov test, note that H0: "d1=d2"
+        a = ks_2samp(s_plus, s_min)
+        # check the p.value
+        if a.pvalue < 0.05 and d2 not in new_dens:
+            new_dens.append(d2)
     return new_dens
