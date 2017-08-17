@@ -204,7 +204,6 @@ def goodness_fit_densities(densities_list, SAMPLE_SIZE=1000):
             a = ks_2samp(s_plus, s_min)
             if a.pvalue > 0.3:
                 s+=1
-            print a.pvalue
         if s > 0.5 and d1 not in new_dens:
             new_dens.append(d1)
         else:
