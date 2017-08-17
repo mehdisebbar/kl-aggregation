@@ -34,6 +34,7 @@ class DictionaryGenerator(BaseEstimator):
         self.kmeans = KMeans(self.kmeans_k)
         self.verbose = verbose
         self.gof = gof
+        self.gof_sample_size = 1000
     
     @staticmethod
     def tau(beta):
@@ -127,7 +128,7 @@ class DictionaryGenerator(BaseEstimator):
                     if densities_gof_simplified[j]!= None and densities_gof_simplified[i]!= None:
                         #we call goodness_fit_densities() here, returns a  list of unique densities according
                         #to the test
-                        if len(goodness_fit_densities([densities_gof_simplified[i], densities_gof_simplified[j]])) == 1 and i!=j:
+                        if len(goodness_fit_densities([densities_gof_simplified[i], densities_gof_simplified[j]],SAMPLE_SIZE=self.gof_sample_size)) == 1 and i!=j:
                             densities_gof_simplified[j]=None
             return [d for d in densities_gof_simplified if d!= None]
         else:
