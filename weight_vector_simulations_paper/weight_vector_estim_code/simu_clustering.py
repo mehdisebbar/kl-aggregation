@@ -232,7 +232,7 @@ def simu(N, K, dim, gof_test= True, pc_select = True, write_results = True, verb
             dg.fit(X_train_dict_gen)
             densities_dict = dg.simplify_gof()
         else:
-            densities_dict = dg.fit_transform(X)
+            densities_dict = dg.fit_transform(X_train_dict_gen)
         cl = WeightEstimator(densities_dict=densities_dict)
         cl.fit(X_train_kl_aggreg)
         time_kl_aggreg_stop = time()

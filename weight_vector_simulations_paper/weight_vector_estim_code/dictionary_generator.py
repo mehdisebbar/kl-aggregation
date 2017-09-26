@@ -1,4 +1,5 @@
 from itertools import combinations
+from copy import deepcopy
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -6,7 +7,6 @@ from sklearn.cluster import KMeans
 from scipy.stats import multivariate_normal
 from sklearn.base import BaseEstimator
 from tools import mle_bic
-from copy import deepcopy
 from tools import goodness_fit_densities
 
 class DictionaryGenerator(BaseEstimator):
