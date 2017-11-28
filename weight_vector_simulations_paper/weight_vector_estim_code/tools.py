@@ -18,7 +18,6 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from scipy.stats import ks_2samp
 
-
 def get_results(folder, keys):
     """
     Get results from a folder at path, starting with res and produce a dataframe
@@ -144,25 +143,6 @@ def kl_norm(f_over_g, f_sample, sample_size=100000, hypercube_size = 3):
     samples = sampler.samples
     return 1./sample_size*np.apply_along_axis(f_over_g, 1, samples[0]).sum()
 
-#def importance_sampling_integrate(f_over_g, f_sample, sample_size=10000, hypercube_size = 3):
-#    """
-#    Compute the L2 norm of f-g using importance sampling
-#    with sample_size samples drawn from a gaussian mixture f_sample from pypmc
-#    input : 
-#    f_over_g : the integrand (1-g/f)^2*f with f real density and g estimator of density,
-#               input is the pdf.
-#    f_sample : sampling distrib f* known, type pypmc density mixture
-#    """
-#    # define indicator
-#    dim = f_sample.dim
-#    ind_lower = [-hypercube_size for _ in range(dim)]
-#    ind_upper = [hypercube_size for _ in range(dim)]
-#    ind = hyperrectangle(ind_lower, ind_upper)
-#    sampler = ImportanceSampler(f_sample.evaluate, f_sample, ind)
-#    sampler.run(sample_size)
-#    samples = sampler.samples
-#    return np.sqrt(1./sample_size*np.apply_along_axis(f_over_g, 1, samples[0]).sum())
-
 class uniform_nonzero(object):
     """
     a wrapper to uniform density
@@ -218,3 +198,19 @@ def goodness_fit_densities(densities_list, SAMPLE_SIZE=1000):
         if a.pvalue < 0.05 and d2 not in new_dens:
             new_dens.append(d2)
     return new_dens
+
+
+def cv_kde(X, n_pdf, bdwdth=np.linspace(0.01, 1.0, 100)):
+    """
+    kde with CV bandwidth selection
+    """
+    a = time()
+    grid = GridSearchCV(KernelDensity(),
+                        {'bandwidth': bdwdth},
+                        cv=20, n_jobs=8) # 20-fold cross-validation
+    grid.fit(X[:, None])
+    kde = grid.best_estimator_
+    x_grid = np.linspace(0, 1, n_pdf)
+    pdf = np.exp(kde.score_samples(x_grid[:, None]))
+    b=time()
+    return pdf, b-a

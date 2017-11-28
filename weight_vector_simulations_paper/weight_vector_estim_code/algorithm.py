@@ -32,7 +32,7 @@ class WeightEstimator_cvxpy(BaseEstimator):
 
 class WeightEstimator(BaseEstimator):
     """
-    Finds the best convex combination of densities in dict by minimizing the 
+    Finds the best convex combination of densities in a dictionary by minimizing the
     log likelihood. Based on FISTA.abs
     Requires Numba, otherwise comment @jit decorators in this class and simplex_proj_numba
     """

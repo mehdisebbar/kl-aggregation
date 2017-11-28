@@ -6,6 +6,9 @@ from scipy.integrate import quad, simps
 from time import time
 
 class AdaptiveDantzigEstimator(BaseEstimator):
+    """
+    Adaptive Dantzig estimator from K. Bertin, E. Le Pennec and V. Rivoirard
+    """
 
     def __init__(self, densities):
         self.densities = densities

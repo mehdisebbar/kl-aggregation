@@ -3,36 +3,17 @@ This code is an extension to add the KDE CV method,
 it is based on the python notebook without clean implementation
 """
 
+import pickle
 from os import listdir
 from os.path import isfile, join
-import pickle
-import pandas as pd
+
 import numpy as np
-import uuid
-from scipy.stats import multivariate_normal
-from pythonABC.hselect import hsj
-from scipy.stats import gaussian_kde
+import pandas as pd
 from scipy.stats import entropy
-from sklearn.grid_search import GridSearchCV
-from sklearn.neighbors import KernelDensity
-from time import time
+from scipy.stats import multivariate_normal
 
+from tools import cv_kde
 
-
-def cv_kde(X, n_pdf):
-    """
-    kde with CV bandwidth selection
-    """
-    a = time()
-    grid = GridSearchCV(KernelDensity(),
-                        {'bandwidth': np.linspace(0.01, 1.0, 100)},
-                        cv=20, n_jobs=8) # 20-fold cross-validation
-    grid.fit(X[:, None])
-    kde = grid.best_estimator_
-    x_grid = np.linspace(0, 1, n_pdf)
-    pdf = np.exp(kde.score_samples(x_grid[:, None]))
-    b=time()
-    return pdf, b-a
 
 def data_extract_from_files(onlyfiles):
     for f in onlyfiles:

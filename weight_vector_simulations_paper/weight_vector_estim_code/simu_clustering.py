@@ -8,7 +8,7 @@ import numpy as np
 from scipy.stats import multivariate_normal
 from sklearn.preprocessing import StandardScaler
 from tools import kl_norm, l2_norm, GaussianMixtureGen, mle_bic, KdeCV
-from densitiesGenerator import  DensityGenerator
+from densities_generator import  DensityGenerator
 from algorithm import WeightEstimator
 from dictionary_generator import DictionaryGenerator
 from pypmc.density.mixture import create_gaussian_mixture
